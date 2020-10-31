@@ -1,6 +1,8 @@
-FROM tensorflow/tensorflow:latest-py3-gpu
+FROM tensorflow/tensorflow:latest-gpu-py3
 
 RUN apt -y update
+
+RUN apt-get -y install jq
 
 COPY . /app
 
