@@ -134,7 +134,7 @@ def download_cats(n_pages=5):
                         file.write(image)
 
                 # document in index
-                with open('index.txt', 'w') as index:
+                with open('index.txt', 'a') as index:
                     index.write(f'Wrote cat {cat_id} from page {page} with {len(cat_images)} images \n')
                     
             else:
@@ -146,4 +146,4 @@ def download_cats(n_pages=5):
 
 
 if __name__ == '__main__':
-    download_cats()
+    download_cats(n_pages=25000)
