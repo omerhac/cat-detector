@@ -84,15 +84,15 @@ def get_cat_images(cat):
             return jpeg_photos
 
 
-def download_cats(n_pages=5):
+def download_cats(n_pages=5, start_page=1):
     """Download n_pages of cats"""
     # authorize
-    client = 1  # start with first client
+    client = 0  # start with first client
     authorize(client)
 
     count = 0
     # document every download to index.txt
-    for page in range(1, n_pages):
+    for page in range(start_page, n_pages):
         request = f'animals?type=cat&page={page}'
         response, response_code = petfinder_request(request, client)
 
@@ -100,8 +100,14 @@ def download_cats(n_pages=5):
         while response_code == 429:  # rate limit hit and we should wait
             print("Rate limit hit, switching client and waiting 5 minutes")
             time.sleep(300)
-            client = 1 if client == 2 else 2
+            client = (client + 1) % 4  # change clients
             response, response_code = petfinder_request(request, client, new_token=True)
+
+        while response_code == 401:
+            print("Acceses token expired, refreshing token and waiting 30 seconds")
+            authorize(client)  # refresh token
+            time.sleep(30)
+            response, response_code = petfinder_request(request, client)
 
         while response_code == 500:  # internal error
             print("Internal error, waiting 1 minute")
@@ -146,4 +152,4 @@ def download_cats(n_pages=5):
 
 
 if __name__ == '__main__':
-    download_cats(n_pages=25000)
+    download_cats(n_pages=25000, start_page=1940)
