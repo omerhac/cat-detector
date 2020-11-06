@@ -84,7 +84,7 @@ def get_cat_images(cat):
             return jpeg_photos
 
 
-def download_cats(n_pages=5, start_page=1):
+def download_cats(zipcode, n_pages=5, start_page=1):
     """Download n_pages of cats"""
     # authorize
     client = 0  # start with first client
@@ -93,7 +93,7 @@ def download_cats(n_pages=5, start_page=1):
     count = 0
     # document every download to index.txt
     for page in range(start_page, n_pages):
-        request = f'animals?type=cat&page={page}'
+        request = f'animals?type=cat&page={page}&location={zipcode}'
         response, response_code = petfinder_request(request, client)
 
         # check response code
@@ -141,15 +141,28 @@ def download_cats(n_pages=5, start_page=1):
 
                 # document in index
                 with open('index.txt', 'a') as index:
-                    index.write(f'Wrote cat {cat_id} from page {page} with {len(cat_images)} images \n')
+                    index.write(f'Wrote cat {cat_id} from zipcode {zipcode} and page {page} with {len(cat_images)} images \n')
                     
             else:
                 print(f"Cat {cat_id} has not enough images")
 
             count += 1
 
+        # break rule
+        if len(cats) == 0:
+            print('No more cats available at zipcode {}'.format(zipcode))
+
     print(f"Finished {count} cats")
 
 
 if __name__ == '__main__':
-    download_cats(n_pages=25000, start_page=1940)
+    zipcodes = [
+        '11215',  # brooklyn
+        '60616',  # chicago
+        '33132',  # miami
+        '90120',  # LA
+        '75001',  # Dallas
+        '63101',  # St Louis
+        '94016'  # SF
+    ]
+    download_cats(zipcodes[0], n_pages=1500, start_page=1)
