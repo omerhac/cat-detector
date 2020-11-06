@@ -128,29 +128,30 @@ def download_cats(zipcode, n_pages=5, start_page=1):
             cat_lib = f'images/{cat_id}/raw'
             if os.path.isdir(cat_lib):
                 print("Skipping cat {}, already exists..".format(cat_id))
-
-            cat_images = get_cat_images(cat)
-            if len(cat_images) > 0:
-                print(f"Wrting cat {cat_id}...")
-                os.makedirs(cat_lib, exist_ok=True)
-
-                # save images
-                for i, image in enumerate(cat_images):
-                    with open(cat_lib + f'/{i}.jpg', 'wb') as file:
-                        file.write(image)
-
-                # document in index
-                with open('index.txt', 'a') as index:
-                    index.write(f'Wrote cat {cat_id} from zipcode {zipcode} and page {page} with {len(cat_images)} images \n')
-                    
             else:
-                print(f"Cat {cat_id} has not enough images")
+                cat_images = get_cat_images(cat)
+                if len(cat_images) > 0:
+                    print(f"Wrting cat {cat_id}...")
+                    os.makedirs(cat_lib, exist_ok=True)
 
+                    # save images
+                    for i, image in enumerate(cat_images):
+                        with open(cat_lib + f'/{i}.jpg', 'wb') as file:
+                            file.write(image)
+
+                    # document in index
+                    with open('index.txt', 'a') as index:
+                        index.write(f'Wrote cat {cat_id} from zipcode {zipcode} and page {page} with {len(cat_images)} images \n')
+
+                else:
+                    print(f"Cat {cat_id} has not enough images")
+            # count
             count += 1
 
         # break rule
         if len(cats) == 0:
             print('No more cats available at zipcode {}'.format(zipcode))
+            return
 
     print(f"Finished {count} cats")
 
@@ -165,4 +166,6 @@ if __name__ == '__main__':
         '63101',  # St Louis
         '94016'  # SF
     ]
-    download_cats(zipcodes[0], n_pages=1500, start_page=1)
+    for zone in range(1, 6):
+        print(zone)
+        download_cats(zipcodes[zone], n_pages=1500)
