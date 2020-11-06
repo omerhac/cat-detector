@@ -84,10 +84,10 @@ def get_cat_images(cat):
             return jpeg_photos
 
 
-def download_cats(zipcode, n_pages=5, start_page=1):
+def download_cats(zipcode, n_pages=5, start_page=1, start_client=0):
     """Download n_pages of cats"""
     # authorize
-    client = 0  # start with first client
+    client = start_client  # start with first client
     authorize(client)
 
     count = 0
@@ -168,4 +168,4 @@ if __name__ == '__main__':
     ]
     for zone in range(1, 6):
         print(zone)
-        download_cats(zipcodes[zone], n_pages=1500)
+        download_cats(zipcodes[zone], n_pages=1500, start_client=3)
