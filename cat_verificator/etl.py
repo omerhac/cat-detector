@@ -40,10 +40,16 @@ def get_cat_image_paths(cat_paths=None, type='raw', base_dir=None, sort_by=None)
     return images_paths
 
 
-def read_image(path):
+def read_image(path, return_cat_class=True):
     """Read jpeg image from tensor path"""
     image = tf.io.decode_jpeg(tf.io.read_file(path))
-    return image
+
+    if return_cat_class:
+        cat_class = tf.strings.split(path, sep='/')[-3]
+        return cat_class, image
+
+    else:
+        return image
 
 
 def resize_image(image, height=256, width=256):
@@ -65,7 +71,11 @@ def image_generator(images_dir, image_size=(256, 256), type='raw', sort_by=None)
 
     # read and resize image to image_size
     image_dataset = image_paths_dataset.map(read_image)
-    resize_func = lambda image: resize_image(image, height=image_size[0], width=image_size[1])
+
+    # helper function
+    def resize_func(cat_class, image):
+        return cat_class, resize_image(image, height=image_size[0], width=image_size[1])
+
     image_dataset = image_dataset.map(resize_func)
 
     return image_dataset
@@ -75,5 +85,5 @@ if __name__ == '__main__':
     images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     ds = image_generator(images_dir)
-    for i, image in enumerate(ds):
-        plt.imsave(f'{i}.jpg', image.numpy())
+    for cat_class, image in ds:
+        print(cat_class)
