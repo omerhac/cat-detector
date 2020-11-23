@@ -20,6 +20,7 @@ copies or substantial portions of the Software.
 import tensorflow as tf
 
 
+@tf.function
 def _pairwise_distances(embeddings, squared=False):
     """Compute the 2D matrix of distances between all the embeddings.
 
@@ -62,6 +63,7 @@ def _pairwise_distances(embeddings, squared=False):
     return distances
 
 
+@tf.function
 def _get_anchor_positive_triplet_mask(labels):
     """Return a 2D mask where mask[a, p] is True iff a and p are distinct and have same label.
 
@@ -85,6 +87,7 @@ def _get_anchor_positive_triplet_mask(labels):
     return mask
 
 
+@tf.function
 def _get_anchor_negative_triplet_mask(labels):
     """Return a 2D mask where mask[a, n] is True iff a and n have distinct labels.
 
@@ -103,6 +106,7 @@ def _get_anchor_negative_triplet_mask(labels):
     return mask
 
 
+@tf.function
 def _get_triplet_mask(labels):
     """Return a 3D mask where mask[a, p, n] is True iff the triplet (a, p, n) is valid.
 
@@ -135,6 +139,7 @@ def _get_triplet_mask(labels):
     return mask
 
 
+@tf.function
 def batch_all_triplet_loss(labels, embeddings, margin, squared=False):
     """Build the triplet loss over a batch of embeddings.
 
@@ -208,7 +213,7 @@ def batch_hard_triplet_loss(labels, embeddings, margin, squared=False):
     # For each anchor, get the hardest positive
     # First, we need to get a mask for every valid positive (they should have same label)
     mask_anchor_positive = _get_anchor_positive_triplet_mask(labels)
-    mask_anchor_positive = tf.to_float(mask_anchor_positive)
+    mask_anchor_positive = tf.cast(mask_anchor_positive, tf.float32)
 
     # We put to 0 any element where (a, p) is not valid (valid if a != p and label(a) == label(p))
     anchor_positive_dist = tf.multiply(mask_anchor_positive, pairwise_dist)
@@ -220,7 +225,7 @@ def batch_hard_triplet_loss(labels, embeddings, margin, squared=False):
     # For each anchor, get the hardest negative
     # First, we need to get a mask for every valid negative (they should have different labels)
     mask_anchor_negative = _get_anchor_negative_triplet_mask(labels)
-    mask_anchor_negative = tf.to_float(mask_anchor_negative)
+    mask_anchor_negative = tf.cast(mask_anchor_negative, tf.float32)
 
     # We add the maximum value in each row to the invalid negatives (label(a) == label(n))
     max_anchor_negative_dist = tf.reduce_max(pairwise_dist, axis=1, keepdims=True)
