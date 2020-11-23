@@ -55,7 +55,7 @@ def petfinder_request(request, client, new_token=False):
 
 
 def get_cat_images(cat):
-    """Return the cats jpeg check. Only if he has 5 or more"""
+    """Return the cats jpeg images. Only if he has 5 or more"""
 
     photos = cat['photos']
 
@@ -77,7 +77,7 @@ def get_cat_images(cat):
             except:
                 pass
 
-        # check number of check again
+        # check number of images again
         if len(jpeg_photos) < 5:
             return []
         else:
@@ -125,7 +125,7 @@ def download_cats(zipcode, n_pages=5, start_page=1, start_client=0):
         for cat in cats:
             # create cat path
             cat_id = cat['id']
-            cat_lib = f'check/{cat_id}/raw'
+            cat_lib = f'images/{cat_id}/raw'
             if os.path.isdir(cat_lib):
                 print("Skipping cat {}, already exists..".format(cat_id))
             else:
@@ -134,14 +134,14 @@ def download_cats(zipcode, n_pages=5, start_page=1, start_client=0):
                     print(f"Wrting cat {cat_id}...")
                     os.makedirs(cat_lib, exist_ok=True)
 
-                    # save check
+                    # save images
                     for i, image in enumerate(cat_images):
                         with open(cat_lib + f'/{i}.jpg', 'wb') as file:
                             file.write(image)
 
                     # document in index
                     with open('index.txt', 'a') as index:
-                        index.write(f'Wrote cat {cat_id} from zipcode {zipcode} and page {page} with {len(cat_images)} check \n')
+                        index.write(f'Wrote cat {cat_id} from zipcode {zipcode} and page {page} with {len(cat_images)} images \n')
 
                 else:
                     print(f"Cat {cat_id} has not enough images")

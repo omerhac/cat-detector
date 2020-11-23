@@ -1,23 +1,29 @@
+from abc import ABC
+
 import tensorflow as tf
 from triplet_loss import *
 
 
-def get_model(input_shape=(256, 256)):
-    """Return a cat verificator model"""
+class CatVerificator(tf.keras.Model, ABC):
+    """Cat verificator model"""
 
-    # initiate layers
-    inp_image = tf.keras.layers.Input(input_shape)
-    efnet = tf.keras.applications.EfficientNetB2(include_top=False, pooling='avg')
-    dense_rep = tf.keras.layers.Dense(64, activation='linear')
+    def __init__(self, input_shape=(256, 256, 3)):
+        super(CatVerificator, self).__init__()
+        self._efnet = tf.keras.applications.EfficientNetB2(include_top=False, pooling='avg', input_shape=input_shape)
+        self._dense_rep = tf.keras.layers.Dense(64, activation='linear', name='dense_rep')
 
-    model = tf.keras.models.Sequential([
-        inp_image,
-        efnet,
-        dense_rep
-    ])
+    def __call__(self, x):
+        efnet_out = self._efnet(x)
+        dense_rep = self._dense_rep(efnet_out)
 
-    return model
+        # l2 normalize
+        dense_rep = tf.keras.backend.l2_normalize(dense_rep)
+
+        return dense_rep
 
 
 if __name__ == '__main__':
-    get_model()
+    a = CatVerificator()
+    b = tf.random.uniform((256, 256, 3))
+    print(b.shape)
+    print(a(b).shape)
