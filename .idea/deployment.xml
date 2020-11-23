@@ -5,7 +5,7 @@
       <paths name="paperspace@74.82.29.189:22">
         <serverdata>
           <mappings>
-            <mapping deploy="/" local="$PROJECT_DIR$" web="/" />
+            <mapping deploy="/tmp/pycharm_project_970" local="$PROJECT_DIR$" />
           </mappings>
         </serverdata>
       </paths>

@@ -144,7 +144,7 @@ def download_cats(zipcode, n_pages=5, start_page=1, start_client=0):
                         index.write(f'Wrote cat {cat_id} from zipcode {zipcode} and page {page} with {len(cat_images)} check \n')
 
                 else:
-                    print(f"Cat {cat_id} has not enough check")
+                    print(f"Cat {cat_id} has not enough images")
             # count
             count += 1
 
