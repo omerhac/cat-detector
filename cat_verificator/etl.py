@@ -85,5 +85,5 @@ if __name__ == '__main__':
     images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
     ds = image_generator(images_dir)
-    for cat_class, image in ds:
-        print(cat_class)
+    for cat_class, image in ds.batch(10):
+        print(cat_class.shape, image.shape)
