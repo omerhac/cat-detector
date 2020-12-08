@@ -78,7 +78,7 @@ def image_generator(images_dir, image_size=(256, 256), type='raw', sort_by=None)
 
     image_dataset = image_dataset.map(resize_func)
 
-    return image_dataset
+    return image_dataset, len(image_paths)  # return also dataset size
 
 
 if __name__ == '__main__':
