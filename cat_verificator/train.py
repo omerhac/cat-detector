@@ -28,10 +28,10 @@ def loss_function(labels, embeddings, alpha):
     m2 = tf.reduce_sum(dot_product_squared * neg_mask) / num_pairs
 
     # get embeddings dimension
-    dim_term = tf.cast(1/ tf.shape(embeddings)[1], tf.float32)
+    dim_term = tf.cast(1 / tf.shape(embeddings)[1], tf.float32)
 
     # compute global orthogonal regularization term
-    l_gor = m1 ** 2 + tf.maximum(0, m2 - dim_term)
+    l_gor = m1 ** 2 + tf.maximum(tf.constant(0, dtype=tf.float32), m2 - dim_term)
 
     # get triplet_loss
     l_triplet = batch_hard_triplet_loss(labels, embeddings, MARGIN)
@@ -72,8 +72,8 @@ def train():
 if __name__ == '__main__':
     a = tf.constant([
         [1, 0, 1],
-        [0 ,1, 0],
-        [0 ,1, 1]
+        [0, 1, 0],
+        [0, 1, 1]
     ], dtype=tf.float32)
     b = tf.constant([
         0, 1, 1
