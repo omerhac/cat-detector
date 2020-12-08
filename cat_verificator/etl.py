@@ -34,7 +34,7 @@ def get_cat_image_paths(cat_paths=None, type='raw', images_dir=None, sort_by=Non
     images_paths = []
 
     for cat_dir in cat_paths:
-        cat_images = glob.glob(cat_dir + '/' + type + '/*')
+        cat_images = glob.glob(cat_dir + '/' + type + '/*.jpg')
         images_paths += cat_images
 
     return images_paths
