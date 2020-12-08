@@ -16,20 +16,20 @@ def get_cat_dirs(base_dir, sort_by=None):
     return  sorted(glob.glob(base_dir + '/*'), key=sort_by)
 
 
-def get_cat_image_paths(cat_paths=None, type='raw', base_dir=None, sort_by=None):
+def get_cat_image_paths(cat_paths=None, type='raw', images_dir=None, sort_by=None):
     """
     Return a list with cats images from a list of cats paths.
     Args:
         cat_paths: list with cats directories paths
         type: which type of images to extract. Available types are 'raw' or 'face', defaults to 'raw
-        base_dir: base images dir, required only if cat_paths is not provided
+        images_dir: base images dir, required only if cat_paths is not provided
         sort_by: function by which to sort the cats
     """
 
     # cat cat dirs if not provided
     if cat_paths is None:
-        base_dir = base_dir + '/images'
-        cat_paths = get_cat_dirs(base_dir, sort_by=sort_by)
+        images_dir = images_dir
+        cat_paths = get_cat_dirs(images_dir, sort_by=sort_by)
 
     images_paths = []
 
@@ -63,10 +63,11 @@ def image_generator(images_dir, image_size=(256, 256), type='raw', sort_by=None)
             image_size: target size for images. aspect ration will be reserved
             type: which type of images to extract. Available types are 'raw' or 'face', defaults to 'raw
             sort_by: function by which to sort the cats
+            images_dir: images directory
     """
 
     # get cat images paths dataset
-    image_paths = get_cat_image_paths(type=type, base_dir=images_dir, sort_by=sort_by)
+    image_paths = get_cat_image_paths(type=type, images_dir=images_dir, sort_by=sort_by)
     image_paths_dataset = tf.data.Dataset.from_tensor_slices(image_paths)
 
     # read and resize image to image_size
@@ -82,8 +83,8 @@ def image_generator(images_dir, image_size=(256, 256), type='raw', sort_by=None)
 
 
 if __name__ == '__main__':
-    images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+    images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
 
-    ds = image_generator(images_dir)
+    ds, _ = image_generator(images_dir)
     for cat_class, image in ds.batch(10):
         print(cat_class.shape, image.shape)
