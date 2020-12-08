@@ -50,6 +50,10 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=30):
         batch_size: images batch size
         epochs: number of epochs
     """
+
+    # initialize aggregators
+    mean_loss = tf.keras.metrics.Mean(name='mean_loss')
+
     for epoch in range(epochs):
         print(f'Epoch number {epoch}')
 
@@ -59,12 +63,15 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=30):
                 batch_embeddings = model(batch_images)
                 loss = loss_function(batch_labels, batch_embeddings, MARGIN)  # compute loss
 
-                # apply graduebts
+                # apply gradients
                 grads_and_vars = tape.gradient(loss, model.trainable_variables)
                 optimizer.apply_gradients(zip(grads_and_vars, model.trainable_variables))
+
+            # aggregate
+            mean_loss(loss)
             # print loss
             if batch_num % 1 == 0:  # TODO: change to 50
-                print(f'Batch {batch_num}, Current loss is {loss.numpy()}')
+                print(f'Batch {batch_num}, Mean loss is {mean_loss.result()}')
 
             # finished dataset break rule
             if batch_num == dataset_size // batch_size - 1:
