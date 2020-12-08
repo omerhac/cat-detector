@@ -70,8 +70,8 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=30):
             # aggregate
             mean_loss(loss)
             # print loss
-            if batch_num % 1 == 0:  # TODO: change to 50
-                print(f'Batch {batch_num}, Mean loss is {mean_loss.result()}')
+            if batch_num % 10 == 0:
+                print(f'Batch {batch_num}/{dataset_size//batch_size - 1}, Mean loss is {mean_loss.result()}')
 
             # finished dataset break rule
             if batch_num == dataset_size // batch_size - 1:
@@ -81,26 +81,17 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=30):
 def train():
     """Train cat verificator"""
     # initiate a model
-    model = CatVerificator(input_shape=(64, 64, 3))
+    model = CatVerificator(input_shape=(256, 256, 3))
 
     # get dataset
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
     dataset, dataset_size = etl.image_generator(base_dir, image_size=(64, 64))
     dataset = dataset.repeat()
-    dataset = dataset.batch(10)
+    dataset = dataset.batch(385)
     optimizer = tf.keras.optimizers.Adam()
 
     train_stage(model, dataset, optimizer, dataset_size, 10)
 
 
 if __name__ == '__main__':
-    a = tf.constant([
-        [1, 0, 1],
-        [0, 1, 0],
-        [0, 1, 1]
-    ], dtype=tf.float32)
-    b = tf.constant([
-        0, 1, 1
-    ])
-    print(loss_function(b, a, 0.5))
     train()
