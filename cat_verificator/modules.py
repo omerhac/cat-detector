@@ -9,7 +9,10 @@ class CatVerificator(tf.keras.Model, ABC):
 
     def __init__(self, input_shape=(256, 256, 3)):
         super(CatVerificator, self).__init__()
-        self._efnet = tf.keras.applications.EfficientNetB2(include_top=False, pooling='avg', input_shape=input_shape)
+
+        # initialize efficienetnet with imagenet weights
+        self._efnet = tf.keras.applications.EfficientNetB2(include_top=False, pooling='avg', input_shape=input_shape,
+                                                           weights='weights/efficientnetb2_notop.h5')
         self._dense_rep = tf.keras.layers.Dense(64, activation='linear', name='dense_rep')
 
     def __call__(self, x):
