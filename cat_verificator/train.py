@@ -5,10 +5,11 @@ import os
 import glob
 
 # constants
-MARGIN = 0.1
+MARGIN = 0.4
+ALPHA = 1.1
 
 
-@tf.function
+#@tf.function
 def loss_function(labels, embeddings, alpha):
     """
     Loss function as described in http://cs230.stanford.edu/projects_fall_2019/reports/26251543.pdf.
@@ -53,6 +54,7 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=30):
 
     # initialize aggregators
     mean_loss = tf.keras.metrics.Mean(name='mean_loss')
+    mean_accuracy = tf.keras.metrics.Mean(name='mean_accuracy')
 
     for epoch in range(epochs):
         print(f'Epoch number {epoch}')
@@ -61,37 +63,44 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=30):
             # calculate and apply gradients
             with tf.GradientTape() as tape:
                 batch_embeddings = model(batch_images)
-                loss = loss_function(batch_labels, batch_embeddings, MARGIN)  # compute loss
+                loss = loss_function(batch_labels, batch_embeddings, ALPHA)  # compute loss
 
                 # apply gradients
                 grads_and_vars = tape.gradient(loss, model.trainable_variables)
                 optimizer.apply_gradients(zip(grads_and_vars, model.trainable_variables))
 
+            # calculate metric
+            accuracy = distance_accuracy(batch_embeddings, batch_labels)
+
             # aggregate
             mean_loss(loss)
-            # print loss
+            mean_accuracy(accuracy)
+
+            # print loss and accuracy
             if batch_num % 10 == 0:
-                print(f'Batch {batch_num}/{dataset_size//batch_size - 1}, Mean loss is {mean_loss.result()}')
+                print(f'Batch {batch_num}/{dataset_size//batch_size - 1}, Mean loss is {mean_loss.result()}, Mean accuracy is {mean_accuracy.result()}')
 
             # finished dataset break rule
             if batch_num == dataset_size // batch_size - 1:
                 break
 
 
-def train():
+def train(image_shape=[256, 256]):
     """Train cat verificator"""
     # initiate a model
-    model = CatVerificator(input_shape=(256, 256, 3))
+    model = CatVerificator(input_shape=[*image_shape, 3])
 
     # get dataset
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    dataset, dataset_size = etl.image_generator(base_dir, image_size=(64, 64))
-    dataset = dataset.repeat()
-    dataset = dataset.batch(385)
-    optimizer = tf.keras.optimizers.Adam()
+    dataset, dataset_size = etl.image_generator(base_dir, image_size=image_shape)
 
-    train_stage(model, dataset, optimizer, dataset_size, 10)
+    batch_size = 384
+    dataset = dataset.repeat()
+    dataset = dataset.batch(batch_size)
+    optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
+
+    train_stage(model, dataset, optimizer, dataset_size, batch_size)
 
 
 if __name__ == '__main__':
-    train()
+    train(image_shape=[64, 64])
