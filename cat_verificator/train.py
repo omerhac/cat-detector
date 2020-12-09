@@ -54,7 +54,7 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=30):
 
     # initialize aggregators
     mean_loss = tf.keras.metrics.Mean(name='mean_loss')
-    mean_accuracy = tf.keras.metrics.Mean(name='mean_accuracy')
+    mean_auc = tf.keras.metrics.Mean(name='mean_auc')
 
     for epoch in range(epochs):
         print(f'Epoch number {epoch}')
@@ -70,15 +70,15 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=30):
                 optimizer.apply_gradients(zip(grads_and_vars, model.trainable_variables))
 
             # calculate metric
-            accuracy = distance_accuracy(batch_embeddings, batch_labels)
+            auc = auc_score(batch_embeddings, batch_labels)
 
             # aggregate
             mean_loss(loss)
-            mean_accuracy(accuracy)
+            mean_auc(auc)
 
-            # print loss and accuracy
+            # print loss and accuracytf.linalg.diag(tf.ones(tf.shape(batch_embeddings)[0])
             if batch_num % 10 == 0:
-                print(f'Batch {batch_num}/{dataset_size//batch_size - 1}, Mean loss is {mean_loss.result()}, Mean accuracy is {mean_accuracy.result()}')
+                print(f'Batch {batch_num}/{dataset_size//batch_size - 1}, Mean loss is {mean_loss.result()}, Mean AUC is {mean_auc.result()}')
 
             # finished dataset break rule
             if batch_num == dataset_size // batch_size - 1:
@@ -94,7 +94,7 @@ def train(image_shape=[256, 256]):
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
     dataset, dataset_size = etl.image_generator(base_dir, image_size=image_shape)
 
-    batch_size = 384
+    batch_size = 64
     dataset = dataset.repeat()
     dataset = dataset.batch(batch_size)
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)

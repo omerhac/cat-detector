@@ -39,9 +39,9 @@ class CatVerificator(tf.keras.Model, ABC):
                 layer.trainable = True  # make layer trainable
 
 
-def threshold_accuracy(threshold, batch_embeddings, batch_labels):
-    """Return threshold accuracy on separating embeddings on either being positive or negative.
-    The score is calculated as the (true positives + true negatives) / number of predictions
+def threshold_metrics(threshold, batch_embeddings, batch_labels):
+    """Return threshold TPR and FPR on separating embeddings on either being positive or negative.
+    TPR is true positives / predicted positives, FPR is false positives / predicted negatives.
     """
 
     distance_matrix = _pairwise_distances(batch_embeddings)
@@ -56,37 +56,48 @@ def threshold_accuracy(threshold, batch_embeddings, batch_labels):
     tp_sum = tf.reduce_sum(tf.cast(true_positives, tf.float32))
     tn_sum = tf.reduce_sum(tf.cast(true_negatives, tf.float32))
 
-    # total predictions
-    pred_sum = tf.cast(tf.shape(batch_embeddings)[0] ** 2 - tf.shape(batch_embeddings)[0], tf.float32)  # remove self distance
+    # get ground truth
+    positives = tf.reduce_sum(tf.cast(positive_mask, tf.float32))
+    negatives = tf.reduce_sum(tf.cast(negative_mask, tf.float32))
 
-    return (tp_sum + tn_sum) / pred_sum
+    # stats
+    eps = 1e-12  # for division
+    tpr = tp_sum / (positives + eps)
+    tnr = tn_sum / (negatives + eps)
+    fpr = 1 - tnr
+
+    return tpr, fpr
 
 
-def find_threshold(batch_embeddings, batch_labels):
-    """Return threshold from 0.1 to 1 with the best accuracy and the accuracy score for it"""
-    accuracy_agg = []
-    thresholds = np.linspace(start=0.1, stop=1, num=10)
+def auc_score(batch_embeddings, batch_labels):
+    """Compute AUC score for embeddings and labels"""
+    tprs, fprs = [], []
+    thresholds = np.linspace(start=0.1, stop=3, num=30)
 
+    # get metrics for different thresholds
     for threshold in thresholds:
-        accuracy = threshold_accuracy(threshold, batch_embeddings, batch_labels)  # get accuracy for threshold
-        accuracy_agg.append(accuracy)
+        tpr, fpr = threshold_metrics(threshold, batch_embeddings, batch_labels)  # get metrics for threshold
+        tprs.append(tpr)
+        fprs.append(fpr)
 
-    return thresholds[np.argmax(accuracy_agg)], np.max(accuracy_agg)
+    # compute area
+    area = 0
+    prev_fpr = 0
+    for tpr, fpr in zip(tprs, fprs):
+        area += tpr * (fpr - prev_fpr)
+        prev_fpr = fpr
 
-
-def distance_accuracy(batch_embeddings, batch_labels):
-    """Compute the accuracy score for this batch. Uses best threshold for this batch"""
-    _, accuracy = find_threshold(batch_embeddings, batch_labels)
-    return accuracy
+    return area
 
 
 if __name__ == '__main__':
     a = tf.constant([
         [1, 0, 0],
-        [5, 0, 0],
+        [2, 0, 0],
+        [2.1, 0, 0],
         [4, 0, 0]
     ], dtype=tf.float32)
     b = tf.constant([
-        1, 1, 0
+        1, 1,1, 0
     ], dtype=tf.float32)
-    print(distance_accuracy(a, b))
+    print(auc_score(a, b))
