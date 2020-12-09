@@ -69,10 +69,16 @@ def threshold_metrics(threshold, batch_embeddings, batch_labels):
     return tpr, fpr
 
 
-def auc_score(batch_embeddings, batch_labels):
-    """Compute AUC score for embeddings and labels"""
+def auc_score(batch_embeddings, batch_labels, return_metrics=False):
+    """Compute AUC score for embeddings and labels.
+    Args:
+        batch_embeddings: images embedded by the model
+        batch_labels: labels for each image
+        return_metrics: if True returns dict of shape {threshold: (TPR@threshold, FPR@threshold)}
+    """
+
     tprs, fprs = [], []
-    thresholds = np.linspace(start=0.1, stop=3, num=30)
+    thresholds = np.linspace(start=0.1, stop=2, num=20)
 
     # get metrics for different thresholds
     for threshold in thresholds:
@@ -87,7 +93,16 @@ def auc_score(batch_embeddings, batch_labels):
         area += tpr * (fpr - prev_fpr)
         prev_fpr = fpr
 
-    return area
+    # build metrics dict if needed
+    if return_metrics:
+        metrics_dict = {}
+        for i, threshold in enumerate(thresholds):
+            metrics_dict[threshold] = (tprs[i], fprs[i])
+
+        return area, metrics_dict
+
+    else:
+        return area
 
 
 if __name__ == '__main__':

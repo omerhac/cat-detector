@@ -76,7 +76,7 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=30):
             mean_loss(loss)
             mean_auc(auc)
 
-            # print loss and accuracytf.linalg.diag(tf.ones(tf.shape(batch_embeddings)[0])
+            # print loss and accuracy
             if batch_num % 10 == 0:
                 print(f'Batch {batch_num}/{dataset_size//batch_size - 1}, Mean loss is {mean_loss.result()}, Mean AUC is {mean_auc.result()}')
 
@@ -99,7 +99,7 @@ def train(image_shape=[256, 256]):
     dataset = dataset.batch(batch_size)
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 
-    train_stage(model, dataset, optimizer, dataset_size, batch_size)
+    train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=6)
 
 
 if __name__ == '__main__':
