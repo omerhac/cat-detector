@@ -20,7 +20,7 @@ class CatVerificator(tf.keras.Model, ABC):
         dense_rep = self._dense_rep(efnet_out)
 
         # l2 normalize
-        dense_rep = tf.keras.backend.l2_normalize(dense_rep)
+        dense_rep = tf.keras.backend.l2_normalize(dense_rep, axis=1)
 
         return dense_rep
 
