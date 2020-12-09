@@ -1,7 +1,6 @@
 import tensorflow as tf
-from pathlib import Path
 import os
-import matplotlib.pyplot as plt
+import imghdr
 import glob
 
 
@@ -34,7 +33,7 @@ def get_cat_image_paths(cat_paths=None, type='raw', images_dir=None, sort_by=Non
     images_paths = []
 
     for cat_dir in cat_paths:
-        cat_images = glob.glob(cat_dir + '/' + type + '/*')
+        cat_images = glob.glob(cat_dir + '/' + type + '/*.jpg')
         images_paths += cat_images
 
     return images_paths
@@ -42,7 +41,13 @@ def get_cat_image_paths(cat_paths=None, type='raw', images_dir=None, sort_by=Non
 
 def read_image(path, return_cat_class=True):
     """Read jpeg image from tensor path"""
-    image = tf.io.decode_jpeg(tf.io.read_file(path))
+
+    # handling corrupted images
+    try:
+        image = tf.io.decode_jpeg(tf.io.read_file(path))
+    except:
+        image = tf.zeros([256, 256, 3], dtype=tf.uint8)
+        print(path)
 
     if return_cat_class:
         cat_class = tf.strings.split(path, sep='/')[-3]
@@ -68,6 +73,7 @@ def image_generator(images_dir, image_size=(256, 256), type='raw', sort_by=None)
 
     # get cat images paths dataset
     image_paths = get_cat_image_paths(type=type, images_dir=images_dir, sort_by=sort_by)
+    image_paths = remove_non_jpegs(image_paths)  # remove non jpegs from the dataset
     image_paths_dataset = tf.data.Dataset.from_tensor_slices(image_paths)
 
     # read and resize image to image_size
@@ -82,9 +88,19 @@ def image_generator(images_dir, image_size=(256, 256), type='raw', sort_by=None)
     return image_dataset, len(image_paths)  # return also dataset size
 
 
+def remove_non_jpegs(filepath_list):
+    """Remove non jpeg files from a list of files"""
+    for file in filepath_list:
+        if imghdr.what(file) != 'jpeg':
+            filepath_list.remove(file)
+
+    return filepath_list
+
+
 if __name__ == '__main__':
     images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-
-    ds, _ = image_generator(images_dir)
-    for cat_class, image in ds.batch(10):
-        print(cat_class.shape, image.shape)
+    images = glob.glob(images_dir + '/*/raw/*.jpg')
+    print(len(images))
+    images = remove_non_jpegs(images)
+    print(len(images))
+    print('finished')
