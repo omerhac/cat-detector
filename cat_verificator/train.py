@@ -99,7 +99,7 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     """
 
     # initiate a model
-    model = CatVerificator(input_shape=[*image_shape, 3])
+    model = CatEmbedder(input_shape=[*image_shape, 3])
 
     # get dataset
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
