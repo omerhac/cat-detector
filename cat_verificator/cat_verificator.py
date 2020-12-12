@@ -41,14 +41,14 @@ class CatVerificator():
 
         # get distance
         distance = tf.reduce_sum(tf.pow(cat1_embed - cat2_embed, 2))
-        print(distance)
+        
         return (distance < self._threshold).numpy()
 
 
 if __name__ == '__main__':
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    path1 = base_dir + '/49787732/raw/2.jpg'
-    path2 = base_dir + '/49787732/raw/0.jpg'
+    path1 = base_dir + '/49789087/raw/2.jpg'
+    path2 = base_dir + '/49789087/raw/4.jpg'
     cat1 = read_image(path1, return_cat_class=False)
     cat2 = read_image(path2, return_cat_class=False)
 
