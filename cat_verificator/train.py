@@ -92,7 +92,7 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, ckpt_manage
 
 
 def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
-    """Train cat verificator
+    """Train cat embedder
     Args:
         image_shape: size which to resize the images to
         load_dir: checkpoints directory

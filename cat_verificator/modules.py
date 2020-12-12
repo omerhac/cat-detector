@@ -111,13 +111,6 @@ def auc_score(batch_embeddings, batch_labels, return_metrics=False):
 
 
 if __name__ == '__main__':
-    a = tf.constant([
-        [1, 0, 0],
-        [2, 0, 0],
-        [2.1, 0, 0],
-        [4, 0, 0]
-    ], dtype=tf.float32)
-    b = tf.constant([
-        1, 1,1, 0
-    ], dtype=tf.float32)
-    print(auc_score(a, b))
+    a = CatEmbedder(input_shape=[64, 64, 3])
+
+

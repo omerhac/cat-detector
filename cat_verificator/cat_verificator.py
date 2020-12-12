@@ -1,6 +1,8 @@
 from modules import *
 import tensorflow as tf
-from etl import resize_image
+from etl import resize_image, read_image
+import os
+from train import load_checkpoint
 
 
 class CatVerificator():
@@ -32,7 +34,27 @@ class CatVerificator():
         """Check whether cat_1 and cat_2 are images of the same cat. Resize image if necessary"""
         # get cat embedder input size
         image_shape = self._cat_embedder.get_input_shape()
-        image_height, image_width = image_shape[0], image_shape[2]
+        image_height, image_width = image_shape[0], image_shape[1]
 
         cat1_embed = self._cat_embedder(resize_image(cat_1, height=image_height, width=image_width))
         cat2_embed = self._cat_embedder(resize_image(cat_2, height=image_height, width=image_width))
+
+        # get distance
+        distance = tf.reduce_sum(tf.pow(cat1_embed - cat2_embed, 2))
+        print(distance)
+        return (distance < self._threshold).numpy()
+
+
+if __name__ == '__main__':
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
+    path1 = base_dir + '/49787732/raw/2.jpg'
+    path2 = base_dir + '/49787732/raw/0.jpg'
+    cat1 = read_image(path1, return_cat_class=False)
+    cat2 = read_image(path2, return_cat_class=False)
+
+    cat_embedder = CatEmbedder(input_shape=[64, 64, 3])
+    opt = tf.keras.optimizers.Adam()
+    load_checkpoint(cat_embedder, optimizer=opt, load_dir='weights/checkpoints')
+
+    cat_ver = CatVerificator(cat_embedder, 1.25)
+    print(cat_ver.is_same_cat(cat1, cat2))
