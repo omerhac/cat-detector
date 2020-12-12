@@ -9,7 +9,7 @@ MARGIN = 0.4
 ALPHA = 1.1
 
 
-#@tf.function
+@tf.function
 def loss_function(labels, embeddings, alpha):
     """
     Loss function as described in http://cs230.stanford.edu/projects_fall_2019/reports/26251543.pdf.
@@ -41,7 +41,7 @@ def loss_function(labels, embeddings, alpha):
     return l_triplet + alpha * l_gor
 
 
-def train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=30):
+def train_stage(model, dataset, optimizer, dataset_size, batch_size, ckpt_manager, epochs=30):
     """One training stage in the training process.
     Args:
         model: model to train
@@ -50,6 +50,7 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=30):
         dataset_size: number of images in the dataset
         batch_size: images batch size
         epochs: number of epochs
+        ckpt_manager: checkpoint manager
     """
 
     # initialize aggregators
@@ -84,9 +85,19 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=30):
             if batch_num == dataset_size // batch_size - 1:
                 break
 
+        # save model
+        if epoch % 5 == 0:
+            save_path = ckpt_manager.save()
+            print("Saved model after {} epochs to {}".format(epoch, save_path))
 
-def train(image_shape=[256, 256]):
-    """Train cat verificator"""
+
+def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
+    """Train cat verificator
+    Args:
+        image_shape: size which to resize the images to
+        load_dir: checkpoints directory
+    """
+
     # initiate a model
     model = CatVerificator(input_shape=[*image_shape, 3])
 
@@ -99,7 +110,22 @@ def train(image_shape=[256, 256]):
     dataset = dataset.batch(batch_size)
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 
-    train_stage(model, dataset, optimizer, dataset_size, batch_size, epochs=6)
+    # load checkpoint
+    manager = load_checkpoint(model, optimizer, load_dir=load_dir)
+    train_stage(model, dataset, optimizer, dataset_size, batch_size, manager, epochs=10)
+
+
+def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):
+    """Load model and optimizer from load dir. Return checkpoints manager"""
+    ckpt = tf.train.Checkpoint(transformer=model, optimizer=optimizer)
+    manager = tf.train.CheckpointManager(ckpt, load_dir, max_to_keep=10)
+    if manager.latest_checkpoint:
+        ckpt.restore(manager.latest_checkpoint)
+        print("Restored from {}".format(manager.latest_checkpoint))
+    else:
+        print("Initializing from scratch.")
+
+    return manager
 
 
 if __name__ == '__main__':
