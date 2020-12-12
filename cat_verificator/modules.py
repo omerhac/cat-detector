@@ -10,6 +10,8 @@ class CatEmbedder(tf.keras.Model, ABC):
     def __init__(self, input_shape=(256, 256, 3)):
         super(CatEmbedder, self).__init__()
 
+        self._input_shape = input_shape
+
         # initialize efficienetnet with imagenet weights
         self._efnet = tf.keras.applications.EfficientNetB2(include_top=False, pooling='avg', input_shape=input_shape,
                                                            weights='weights/efficientnetb2_notop.h5')
@@ -37,6 +39,9 @@ class CatEmbedder(tf.keras.Model, ABC):
         for layer in self._efnet.layers:
             if layer.name in ['top_conv', 'top_bn', 'top_activation', 'avg_pool']:  # check layer is in top layers
                 layer.trainable = True  # make layer trainable
+
+    def get_input_shape(self):
+        return self._input_shape
 
 
 def threshold_metrics(threshold, batch_embeddings, batch_labels):
