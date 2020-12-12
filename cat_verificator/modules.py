@@ -4,11 +4,11 @@ from triplet_loss import _get_anchor_negative_triplet_mask, _get_anchor_positive
 import numpy as np
 
 
-class CatVerificator(tf.keras.Model, ABC):
-    """Cat verificator model"""
+class CatEmbedder(tf.keras.Model, ABC):
+    """Cat embedder model"""
 
     def __init__(self, input_shape=(256, 256, 3)):
-        super(CatVerificator, self).__init__()
+        super(CatEmbedder, self).__init__()
 
         # initialize efficienetnet with imagenet weights
         self._efnet = tf.keras.applications.EfficientNetB2(include_top=False, pooling='avg', input_shape=input_shape,
