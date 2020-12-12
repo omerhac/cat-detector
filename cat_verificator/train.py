@@ -117,7 +117,7 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
 
 def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):
     """Load model and optimizer from load dir. Return checkpoints manager"""
-    ckpt = tf.train.Checkpoint(transformer=model, optimizer=optimizer)
+    ckpt = tf.train.Checkpoint(model=model, optimizer=optimizer)
     manager = tf.train.CheckpointManager(ckpt, load_dir, max_to_keep=10)
     if manager.latest_checkpoint:
         ckpt.restore(manager.latest_checkpoint)
