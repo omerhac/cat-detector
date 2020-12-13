@@ -103,16 +103,16 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
 
     # get dataset
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    dataset, dataset_size = etl.image_generator(base_dir, image_size=image_shape)
+    train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape)
 
-    batch_size = 64
-    dataset = dataset.repeat()
-    dataset = dataset.batch(batch_size)
+    batch_size = 32
+    train_dataset = train_dataset.repeat()
+    train_dataset = train_dataset.batch(batch_size)
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 
     # load checkpoint
     manager = load_checkpoint(model, optimizer, load_dir=load_dir)
-    train_stage(model, dataset, optimizer, dataset_size, batch_size, manager, epochs=10)
+    train_stage(model, train_dataset, optimizer, len(dir_obj['train_dirs']), batch_size, manager, epochs=10)
 
 
 def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):

@@ -2,6 +2,7 @@ import tensorflow as tf
 import os
 import imghdr
 import glob
+import numpy as np
 
 
 def get_cat_dirs(base_dir, sort_by=None):
@@ -12,7 +13,7 @@ def get_cat_dirs(base_dir, sort_by=None):
         sort_by: function to sort the cats by
     """
 
-    return  sorted(glob.glob(base_dir + '/*'), key=sort_by)
+    return sorted(glob.glob(base_dir + '/*'), key=sort_by)
 
 
 def get_cat_image_paths(cat_paths=None, type='raw', images_dir=None, sort_by=None):
@@ -25,9 +26,8 @@ def get_cat_image_paths(cat_paths=None, type='raw', images_dir=None, sort_by=Non
         sort_by: function by which to sort the cats
     """
 
-    # cat cat dirs if not provided
+    # get cat dirs if not provided
     if cat_paths is None:
-        images_dir = images_dir
         cat_paths = get_cat_dirs(images_dir, sort_by=sort_by)
 
     images_paths = []
@@ -62,30 +62,50 @@ def resize_image(image, height=256, width=256):
     return tf.cast(tf.image.resize_with_pad(image, height, width), tf.uint8)
 
 
-def image_generator(images_dir, image_size=(256, 256), type='raw', sort_by=None):
-    """Return dataset image generator. Each image will be resized to image_size.
+def image_generators(images_dir, image_size=(256, 256), type='raw', validation_split=0.25, sort_by=None):
+    """Return dataset train and validation image generators. Each image will be resized to image_size.
         Args:
             image_size: target size for images. aspect ration will be reserved
-            type: which type of images to extract. Available types are 'raw' or 'face', defaults to 'raw
+            type: which type of images to extract. Available types are 'raw' or 'face', defaults to 'raw'
             sort_by: function by which to sort the cats
             images_dir: images directory
+            validation_split: which portion of the dataeset to save for validation
+
+        Returns:
+            train_dataset: TF dataset with train images resized to image_size
+            validation_dataset: TF dataset with validation images resized to image_size
+            dir_object: dict with {train_dirs: list of train dirs, val_dirs: list of validation dirs}
     """
 
-    # get cat images paths dataset
-    image_paths = get_cat_image_paths(type=type, images_dir=images_dir, sort_by=sort_by)
-    image_paths = remove_non_jpegs(image_paths)  # remove non jpegs from the dataset
-    image_paths_dataset = tf.data.Dataset.from_tensor_slices(image_paths)
+    # split train and val dirs
+    cat_dirs = get_cat_dirs(images_dir, sort_by=sort_by)
+    val_dirs = list(np.random.choice(cat_dirs, size=int(len(cat_dirs) * validation_split)))
+    train_dirs = list(set(cat_dirs) - set(val_dirs))
+
+    # get cat images paths train and validation dataset
+    train_image_paths = get_cat_image_paths(type=type, cat_paths=train_dirs, sort_by=sort_by)
+    val_image_paths = get_cat_image_paths(type=type, cat_paths=val_dirs, sort_by=sort_by)
+    train_image_paths = remove_non_jpegs(train_image_paths)  # remove non jpegs from the dataset
+    val_image_paths = remove_non_jpegs(val_image_paths)  # remove non jpegs from the dataset
+
+    train_image_paths_dataset = tf.data.Dataset.from_tensor_slices(train_image_paths)
+    val_image_paths_dataset = tf.data.Dataset.from_tensor_slices(val_image_paths)
 
     # read and resize image to image_size
-    image_dataset = image_paths_dataset.map(read_image)
+    train_dataset = train_image_paths_dataset.map(read_image)
+    validation_dataset = val_image_paths_dataset.map(read_image)
 
     # helper function
     def resize_func(cat_class, image):
         return cat_class, resize_image(image, height=image_size[0], width=image_size[1])
 
-    image_dataset = image_dataset.map(resize_func)
+    train_dataset = train_dataset.map(resize_func)
+    validation_dataset = validation_dataset.map(resize_func)
 
-    return image_dataset, len(image_paths)  # return also dataset size
+    # dir object
+    dir_obj = {'train_dirs': train_dirs, 'val_dirs': val_dirs}
+
+    return train_dataset, validation_dataset, dir_obj
 
 
 def remove_non_jpegs(filepath_list):
@@ -99,8 +119,4 @@ def remove_non_jpegs(filepath_list):
 
 if __name__ == '__main__':
     images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    images = glob.glob(images_dir + '/*/raw/*.jpg')
-    print(len(images))
-    images = remove_non_jpegs(images)
-    print(len(images))
-    print('finished')
+
