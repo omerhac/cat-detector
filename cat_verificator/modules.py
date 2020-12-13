@@ -43,6 +43,20 @@ class CatEmbedder(tf.keras.Model, ABC):
     def get_input_shape(self):
         return self._input_shape
 
+    def load_checkpoint(self, ckpt_path=None):
+        """Load model weights from ckpt_path, if None restores from latest checkpoint"""
+        dummy_opt = tf.keras.optimizers.Adam()
+        ckpt = tf.train.Checkpoint(model=self, optimizer=dummy_opt)
+
+        # check where to restore from
+        if ckpt_path:
+            ckpt.restore(ckpt_path)
+            print(f'Restored weights from {ckpt_path}')
+        else:
+            ckpt_path = tf.train.latest_checkpoint('weights/checkpoints')
+            ckpt.restore(ckpt_path)
+            print(f'Restored weights from {ckpt_path}')
+
 
 def threshold_metrics(threshold, batch_embeddings, batch_labels):
     """Return threshold TPR and FPR on separating embeddings on either being positive or negative.
@@ -112,5 +126,6 @@ def auc_score(batch_embeddings, batch_labels, return_metrics=False):
 
 if __name__ == '__main__':
     a = CatEmbedder(input_shape=[64, 64, 3])
+    a.load_checkpoint()
 
 

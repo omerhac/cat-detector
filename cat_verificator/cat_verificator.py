@@ -41,7 +41,7 @@ class CatVerificator():
 
         # get distance
         distance = tf.reduce_sum(tf.pow(cat1_embed - cat2_embed, 2))
-        
+
         return (distance < self._threshold).numpy()
 
 
@@ -53,8 +53,7 @@ if __name__ == '__main__':
     cat2 = read_image(path2, return_cat_class=False)
 
     cat_embedder = CatEmbedder(input_shape=[64, 64, 3])
-    opt = tf.keras.optimizers.Adam()
-    load_checkpoint(cat_embedder, optimizer=opt, load_dir='weights/checkpoints')
+    cat_embedder.load_checkpoint('weights/checkpoints/ckpt-7')
 
     cat_ver = CatVerificator(cat_embedder, 1.25)
     print(cat_ver.is_same_cat(cat1, cat2))
