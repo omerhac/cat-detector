@@ -1,6 +1,7 @@
 import os
 import subprocess
 import time
+import glob
 import sys
 
 
@@ -49,5 +50,17 @@ def detect_faces(input_folder, output_folder):
     print("Detected Cat Faces in {0:.1f} seconds".format(end - start))
 
 
+def detect_dataset_faces():
+    """Detect faces in all of the dataset images. Keep images in cat_dir/detected"""
+    # get dirs
+    images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
+    cat_dirs = glob.glob(images_dir + '/*')
+    save_prefix = '/detected'
+
+    # detect faces for all cats
+    for cat in cat_dirs:
+        detect_faces(cat + '/raw', cat + save_prefix)
+
+
 if __name__ == '__main__':
-    detect_faces('Data/Source_Images/Test_Images', 'Data/Source_Images/check')
+    detect_dataset_faces()
