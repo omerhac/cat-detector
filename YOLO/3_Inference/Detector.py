@@ -51,12 +51,116 @@ anchors_path = os.path.join(src_path, "keras_yolo3", "model_data", "yolo_anchors
 
 FLAGS = None
 
+
+def predict_input_dir(FLAGS, input_dir, output_dir):
+    """Detect faces in input_dir.
+    Args:
+        FLAGS: parsed args from commandline
+        input_dir: input directory with images for detecting faces
+        output_dir: output directory for saving images
+    """
+
+    # get images paths from input directory
+    input_paths = GetFileList(input_dir)
+    # Split images
+    img_endings = (".jpg", ".jpeg", ".png")
+    input_image_paths = []
+
+    for item in input_paths:
+        if item.endswith(img_endings):
+            input_image_paths.append(item)
+
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
+
+    # Make a dataframe for the prediction outputs
+    out_df = pd.DataFrame(
+        columns=[
+            "image",
+            "image_path",
+            "xmin",
+            "ymin",
+            "xmax",
+            "ymax",
+            "label",
+            "confidence",
+            "x_size",
+            "y_size",
+        ]
+    )
+    # labels to draw on check
+    class_file = open(FLAGS.classes_path, "r")
+    input_labels = [line.rstrip("\n") for line in class_file.readlines()]
+    print("Found {} input labels: {} ...".format(len(input_labels), input_labels))
+    if input_image_paths:
+        print(
+            "Found {} input images: {} ...".format(
+                len(input_image_paths),
+                [os.path.basename(f) for f in input_image_paths[:5]],
+            )
+        )
+        start = timer()
+
+        # predict every images
+        for i, img_path in enumerate(input_image_paths):
+            print(img_path)
+            prediction, image = detect_object(
+                yolo,
+                img_path,
+                save_img=True,
+                save_img_path=output_dir,
+                postfix=FLAGS.postfix,
+            )
+            y_size, x_size, _ = np.array(image).shape
+            for single_prediction in prediction:
+                out_df = out_df.append(
+                    pd.DataFrame(
+                        [
+                            [
+                                os.path.basename(img_path.rstrip("\n")),
+                                img_path.rstrip("\n"),
+                            ]
+                            + single_prediction
+                            + [x_size, y_size]
+                        ],
+                        columns=[
+                            "image",
+                            "image_path",
+                            "xmin",
+                            "ymin",
+                            "xmax",
+                            "ymax",
+                            "label",
+                            "confidence",
+                            "x_size",
+                            "y_size",
+                        ],
+                    )
+                )
+        end = timer()
+        print(
+            "Processed {} images in {:.1f}sec - {:.1f}FPS".format(
+                len(input_image_paths),
+                end - start,
+                len(input_image_paths) / (end - start),
+            )
+        )
+        out_df.to_csv(FLAGS.box, index=False)
+
+
 if __name__ == "__main__":
     # Delete all default flags
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     """
     Command line options
     """
+
+    parser.add_argument(
+        "--multiple_inputs_filepath",
+        type=str,
+        default=None,
+        help="Path to file with multiple input paths, defaults to None for non use"
+    )
 
     parser.add_argument(
         "--input_path",
@@ -81,13 +185,6 @@ if __name__ == "__main__":
         help="Only save bounding box coordinates but do not save output check with annotated boxes. Default is False.",
     )
 
-    parser.add_argument(
-        "--file_types",
-        "--names-list",
-        nargs="*",
-        default=[],
-        help="Specify list of file types to include. Default is --file_types .jpg .jpeg .png .mp4",
-    )
 
     parser.add_argument(
         "--yolo_model",
@@ -139,7 +236,7 @@ if __name__ == "__main__":
         type=str,
         dest="postfix",
         default="_catface",
-        help='Specify the postfix for check with bounding boxes. Default is "_catface"',
+        help='Specify the postfix for images with bounding boxes. Default is "_catface"',
     )
 
     parser.add_argument(
@@ -149,48 +246,20 @@ if __name__ == "__main__":
         help="Use the tiny Yolo version for better performance and less accuracy. Default is False.",
     )
 
-    parser.add_argument(
-        "--webcam",
-        default=False,
-        action="store_true",
-        help="Use webcam for real-time detection. Default is False.",
-    )
-
     FLAGS = parser.parse_args()
 
     save_img = not FLAGS.no_save_img
 
     file_types = FLAGS.file_types
 
-    webcam_active = FLAGS.webcam
-
-    if file_types:
-        input_paths = GetFileList(FLAGS.input_path, endings=file_types)
-    else:
-        input_paths = GetFileList(FLAGS.input_path)
-
-    # Split check and videos
-    img_endings = (".jpg", ".jpeg", ".png")
-    vid_endings = (".mp4", ".mpeg", ".mpg", ".avi")
-
-    input_image_paths = []
-    input_video_paths = []
-    for item in input_paths:
-        if item.endswith(img_endings):
-            input_image_paths.append(item)
-        elif item.endswith(vid_endings):
-            input_video_paths.append(item)
-
-    output_path = FLAGS.output
-    if not os.path.exists(output_path):
-        os.makedirs(output_path)
+    inputs_filepath = FLAGS.multiple_inputs_filepath
 
     if FLAGS.is_tiny and FLAGS.anchors_path == anchors_path:
         anchors_path = os.path.join(
             os.path.dirname(FLAGS.anchors_path), "yolo-tiny_anchors.txt"
         )
-
     anchors = get_anchors(anchors_path)
+
     # define YOLO detector
     yolo = YOLO(
         **{
@@ -203,112 +272,20 @@ if __name__ == "__main__":
         }
     )
 
-    # Make a dataframe for the prediction outputs
-    out_df = pd.DataFrame(
-        columns=[
-            "image",
-            "image_path",
-            "xmin",
-            "ymin",
-            "xmax",
-            "ymax",
-            "label",
-            "confidence",
-            "x_size",
-            "y_size",
-        ]
-    )
+    # predict from single directory or multiple inputs
+    if inputs_filepath:
+        # get a list of all input directories
+        with open(inputs_filepath, 'r') as file:
+            input_dirs = [line.rstrip('\n') for line in file.readlines()]
 
-    # labels to draw on check
-    class_file = open(FLAGS.classes_path, "r")
-    input_labels = [line.rstrip("\n") for line in class_file.readlines()]
-    print("Found {} input labels: {} ...".format(len(input_labels), input_labels))
+        # predict separately for every directory
+        for dir in input_dirs:
+            output_path = dir + '/detected'
+            input_path = dir + '/raw'
+            predict_input_dir(FLAGS, input_path, output_path)
 
-    if input_image_paths and not webcam_active:
-        print(
-            "Found {} input check: {} ...".format(
-                len(input_image_paths),
-                [os.path.basename(f) for f in input_image_paths[:5]],
-            )
-        )
-        start = timer()
-        text_out = ""
-
-        # This is for check
-        for i, img_path in enumerate(input_image_paths):
-            print(img_path)
-            prediction, image = detect_object(
-                yolo,
-                img_path,
-                save_img=save_img,
-                save_img_path=FLAGS.output,
-                postfix=FLAGS.postfix,
-            )
-            y_size, x_size, _ = np.array(image).shape
-            for single_prediction in prediction:
-                out_df = out_df.append(
-                    pd.DataFrame(
-                        [
-                            [
-                                os.path.basename(img_path.rstrip("\n")),
-                                img_path.rstrip("\n"),
-                            ]
-                            + single_prediction
-                            + [x_size, y_size]
-                        ],
-                        columns=[
-                            "image",
-                            "image_path",
-                            "xmin",
-                            "ymin",
-                            "xmax",
-                            "ymax",
-                            "label",
-                            "confidence",
-                            "x_size",
-                            "y_size",
-                        ],
-                    )
-                )
-        end = timer()
-        print(
-            "Processed {} check in {:.1f}sec - {:.1f}FPS".format(
-                len(input_image_paths),
-                end - start,
-                len(input_image_paths) / (end - start),
-            )
-        )
-        out_df.to_csv(FLAGS.box, index=False)
-
-    # This is for videos
-    # for pre-recorded videos present in the Test_Images folder
-    if input_video_paths and not webcam_active:
-        print(
-            "Found {} input videos: {} ...".format(
-                len(input_video_paths),
-                [os.path.basename(f) for f in input_video_paths[:5]],
-            )
-        )
-        start = timer()
-        for i, vid_path in enumerate(input_video_paths):
-            output_path = os.path.join(
-                FLAGS.output,
-                os.path.basename(vid_path).replace(".", FLAGS.postfix + "."),
-            )
-            detect_video(yolo, vid_path, output_path=output_path)
-
-        end = timer()
-        print(
-            "Processed {} videos in {:.1f}sec".format(
-                len(input_video_paths), end - start
-            )
-        )
-    # for Webcam
-    if webcam_active:
-        start = timer()
-        detect_webcam(yolo)
-        end = timer()
-        print("Processed from webcam for {:.1f}sec".format(end - start))
+    else:
+        predict_input_dir(FLAGS, FLAGS.input_path, FLAGS.output)
 
     # Close the current yolo session
     yolo.close_session()
