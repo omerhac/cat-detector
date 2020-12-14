@@ -12,8 +12,10 @@ def make_call_string(arglist):
     return result_string
 
 
-def detect_faces(input_path, output_dir, multiple_inputs_flilepath=None):
-    """Detect faces in input folder and put on output folder"""
+def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None):
+    """Detect faces in input_dir and put on output_dir. If detecting for multiple input directories,
+    A file with input directory paths shold be provided.
+    """
     # create paths
     root_folder = os.path.dirname(os.path.abspath(__file__))
     data_folder = os.path.join(root_folder, "Data")
@@ -30,7 +32,7 @@ def detect_faces(input_path, output_dir, multiple_inputs_flilepath=None):
         root_folder, "2_Training", "src", "keras_yolo3", "model_data", "yolo_anchors.txt"
     )
     arglist = [
-        ["input_path", input_path],
+        ["input_path", input_dir],
         ["classes", classes_file],
         ["output", output_dir],
         ["yolo_model", model_weights],
