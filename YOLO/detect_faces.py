@@ -16,6 +16,7 @@ def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None):
     """Detect faces in input_dir and put on output_dir. If detecting for multiple input directories,
     A file with input directory paths shold be provided.
     """
+
     # create paths
     root_folder = os.path.dirname(os.path.abspath(__file__))
     data_folder = os.path.join(root_folder, "Data")
