@@ -12,7 +12,7 @@ def make_call_string(arglist):
     return result_string
 
 
-def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None):
+def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None, save_images=True):
     """Detect faces in input_dir and put on output_dir. If detecting for multiple input directories,
     A file with input directory paths shold be provided.
     """
@@ -39,12 +39,15 @@ def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None):
         ["yolo_model", model_weights],
         ["box_file", result_file],
         ["anchors", anchors],
-        ["file_types", ".jpg .jpeg .png"],
     ]
 
     # check for multiple inputs
     if multiple_inputs_flilepath:
         arglist.append(["multiple_inputs_filepath", multiple_inputs_flilepath])
+
+    # check whether to save detected images
+    if not save_images:
+        arglist.append(['no_save_img', ' '])
 
     call_string = " ".join(["python", detector_script, make_call_string(arglist)])
     print("Detecting Cat Faces by calling: \n\n", call_string, "\n")
@@ -70,4 +73,5 @@ def detect_dataset_faces():
 
 
 if __name__ == '__main__':
-    detect_dataset_faces()
+    images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
+    detect_faces(images_dir + '/49403512/raw', images_dir + '/49403512/detected', save_images=False)

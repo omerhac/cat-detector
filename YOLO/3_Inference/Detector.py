@@ -73,6 +73,8 @@ def predict_input_dir(FLAGS, input_dir, output_dir):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
+    save_img = not FLAGS.no_save_img  # whether to save detected images
+
     # Make a dataframe for the prediction outputs
     out_df = pd.DataFrame(
         columns=[
@@ -107,7 +109,7 @@ def predict_input_dir(FLAGS, input_dir, output_dir):
             prediction, image = detect_object(
                 yolo,
                 img_path,
-                save_img=True,
+                save_img=save_img,
                 save_img_path=output_dir,
                 postfix=FLAGS.postfix,
             )
@@ -247,10 +249,6 @@ if __name__ == "__main__":
     )
 
     FLAGS = parser.parse_args()
-
-    save_img = not FLAGS.no_save_img
-
-    file_types = FLAGS.file_types
 
     inputs_filepath = FLAGS.multiple_inputs_filepath
 
