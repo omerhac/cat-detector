@@ -11,7 +11,7 @@ def crop_bounding_box(image, xmin, xmax, ymin, ymax):
     height = ymax - ymin
 
     # crop
-    cropped_image = np.zeros(image.shape, dtype=np.uint8)
+    cropped_image = np.zeros([height, width, 3], dtype=np.uint8)
     cropped_image[:height, :width, :] = image[ymin:ymax, xmin:xmax, :]
     return cropped_image
 
