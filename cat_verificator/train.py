@@ -103,7 +103,7 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
 
     # get dataset
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape)
+    train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape, type='cropped')
 
     batch_size = 32
     train_dataset = train_dataset.repeat()

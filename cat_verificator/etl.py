@@ -47,7 +47,6 @@ def read_image(path, return_cat_class=True):
         image = tf.io.decode_jpeg(tf.io.read_file(path))
     except:
         image = tf.zeros([256, 256, 3], dtype=tf.uint8)
-        print(path)
 
     if return_cat_class:
         cat_class = tf.strings.split(path, sep='/')[-3]
@@ -119,4 +118,3 @@ def remove_non_jpegs(filepath_list):
 
 if __name__ == '__main__':
     images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-

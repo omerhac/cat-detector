@@ -2,7 +2,9 @@ from modules import *
 import tensorflow as tf
 from etl import resize_image, read_image
 import os
-from train import load_checkpoint
+import matplotlib.pyplot as plt
+import utilities
+import detect_faces
 
 
 class CatVerificator():
@@ -16,44 +18,84 @@ class CatVerificator():
          is_same_cat: check whether to images are of the same cat
     """
 
-    def __init__(self, cat_embedder, threshold):
+    def __init__(self, cat_embedder, threshold, data_dir='data'):
         """Initialize a cat verficator.
         Args:
             cat_embedder: CatEmbedder model
-            threshold: seperating threshold
+            threshold: separating threshold
+            data_dir: directory for storing application data
         """
 
         self._cat_embedder = cat_embedder
         self._threshold = threshold
+        self._data_dir = data_dir
+        self._own_embedding = None
 
     def set_threshold(self, threshold):
         """Set new threshold to threshold"""
         self._threshold = threshold
 
-    def is_same_cat(self, cat_1, cat_2):
-        """Check whether cat_1 and cat_2 are images of the same cat. Resize image if necessary"""
-        # get cat embedder input size
+    def resize_input(self, image):
+        """Resize image so it fits cat embedder input shape"""
         image_shape = self._cat_embedder.get_input_shape()
         image_height, image_width = image_shape[0], image_shape[1]
+        return resize_image(image, height=image_height, width=image_width)
 
-        cat1_embed = self._cat_embedder(resize_image(cat_1, height=image_height, width=image_width))
-        cat2_embed = self._cat_embedder(resize_image(cat_2, height=image_height, width=image_width))
+    def is_same_cat(self, cat_1, cat_2):
+        """Check whether cat_1 and cat_2 are images of the same cat. Resize image if necessary.
+        Args:
+            cat_1, cat_2: cat images array/tensor
+        """
+        # resize input
+        cat1 = self.resize_input(cat_1)
+        cat2 = self.resize_input(cat_2)
+
+        cat1_embed = self._cat_embedder(cat1)
+        cat2_embed = self._cat_embedder(cat2)
 
         # get distance
         distance = tf.reduce_sum(tf.pow(cat1_embed - cat2_embed, 2))
 
         return (distance < self._threshold).numpy()
 
+    def set_own_image(self, image):
+        """Set own cat image to be image. Also embedds the image and save it as _own_embedding.
+        Args:
+            image: image as an array
+        """
+
+        # create directory for storing images
+        raw_images_path = self._data_dir + '/images/raw'
+        cropped_images_path = self._data_dir + '/images/cropped'
+        if not os.path.exists(raw_images_path):
+            os.makedirs(raw_images_path)
+        if not os.path.exists(cropped_images_path):
+            os.makedirs(cropped_images_path)
+
+        # save own image
+        plt.imsave(raw_images_path + '/own.jpg', image)
+
+        # crop and save face
+        detect_faces.detect_faces(raw_images_path, cropped_images_path, save_images=False)  # save only the coordinates
+        utilities.crop_directory_bounding_boxes(raw_images_path, cropped_images_path,
+                                                cropped_images_path + '/Detection_Results.csv')
+
+        # get own image embedding
+        cropped_own = plt.imread(cropped_images_path + '/own.jpg')
+        cropped_own = self.resize_input(cropped_own)  # resize to cat embedder input shape
+        self._own_embedding = self._cat_embedder(cropped_own)
+
 
 if __name__ == '__main__':
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    path1 = base_dir + '/49789087/raw/2.jpg'
-    path2 = base_dir + '/49789087/raw/4.jpg'
-    cat1 = read_image(path1, return_cat_class=False)
-    cat2 = read_image(path2, return_cat_class=False)
+    path1 = base_dir + '/49726525/raw/1.jpg'
+    path2 = base_dir + '/49403512/raw/4.jpg'
+    cat1 = plt.imread(path1)
+    cat2 = plt.imread(path2)
 
     cat_embedder = CatEmbedder(input_shape=[64, 64, 3])
-    cat_embedder.load_checkpoint('weights/checkpoints/ckpt-7')
+    cat_embedder.load_checkpoint('weights/checkpoints/ckpt-2')
 
-    cat_ver = CatVerificator(cat_embedder, 1.25)
+    cat_ver = CatVerificator(cat_embedder, 1.25, 'data')
     print(cat_ver.is_same_cat(cat1, cat2))
+    cat_ver.set_own_image(cat1)
