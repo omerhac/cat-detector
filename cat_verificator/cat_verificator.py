@@ -65,7 +65,7 @@ class CatVerificator():
     def is_same_cat(self, cat_1, cat_2):
         """Check whether cat_1 and cat_2 are images of the same cat. Resize image if necessary.
         Args:
-            cat_1, cat_2: cat images array/tensor
+            cat_1, cat_2: cropped images of faces of cat. array/tensor
         """
         # resize input
         cat1 = self.resize_input(cat_1)
@@ -76,6 +76,21 @@ class CatVerificator():
 
         # get distance
         distance = tf.reduce_sum(tf.pow(cat1_embed - cat2_embed, 2))
+
+        return (distance < self._threshold).numpy()
+
+    def is_own_cat(self, cat):
+        """Check whether cat and own cat are the same cat. Resize image if necessary.
+        Args:
+            cat: cropped image of a face of a cat. array/tensor
+        """
+        # resize input
+        cat = self.resize_input(cat)
+
+        cat_embed = self._cat_embedder(cat)
+
+        # get distance
+        distance = tf.reduce_sum(tf.pow(cat_embed - self._own_embedding, 2))
 
         return (distance < self._threshold).numpy()
 
@@ -113,10 +128,9 @@ class CatVerificator():
 if __name__ == '__main__':
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
     path1 = base_dir + '/49782535/raw/1.jpg'
-    path2 = base_dir + '/49782535/raw/4.jpg'
+    path2 = base_dir + '/49786142/raw/4.jpg'
     cat1 = plt.imread(path1)
     cat2 = plt.imread(path2)
 
     cat_ver = CatVerificator([64, 64, 3], 1.25, 'data', load_data=True)
-    print(cat_ver._own_embedding)
-    print(cat_ver._threshold)
+    print(cat_ver.is_own_cat(cat2))
