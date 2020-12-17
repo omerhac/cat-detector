@@ -52,13 +52,27 @@ anchors_path = os.path.join(src_path, "keras_yolo3", "model_data", "yolo_anchors
 FLAGS = None
 
 
-def predict_input_dir(FLAGS, input_dir, output_dir):
+def predict_input_dir(FLAGS, input_dir, output_dir, yolo=None):
     """Detect faces in input_dir.
     Args:
         FLAGS: parsed args from commandline
         input_dir: input directory with images for detecting faces
         output_dir: output directory for saving images
+        yolo: initialized yolo model for faster inferring
     """
+
+    # define YOLO detector
+    if not yolo:
+        yolo = YOLO(
+            **{
+                "model_path": FLAGS.model_path,
+                "anchors_path": anchors_path,
+                "classes_path": FLAGS.classes_path,
+                "score": FLAGS.score,
+                "gpu_num": FLAGS.gpu_num,
+                "model_image_size": (256, 256),
+            }
+        )
 
     # get images paths from input directory
     input_paths = GetFileList(input_dir)
@@ -150,44 +164,40 @@ def predict_input_dir(FLAGS, input_dir, output_dir):
         out_df.to_csv(FLAGS.box, index=False)
 
 
-if __name__ == "__main__":
+def detect():
+    global FLAGS, anchors_path, output_path
+
     # Delete all default flags
     parser = argparse.ArgumentParser(argument_default=argparse.SUPPRESS)
     """
-    Command line options
-    """
-
+        Command line options
+        """
     parser.add_argument(
         "--multiple_inputs_filepath",
         type=str,
         default=None,
         help="Path to file with multiple input paths, defaults to None for non use"
     )
-
     parser.add_argument(
         "--input_path",
         type=str,
         default=image_test_folder,
         help="Path to image/video directory. All subdirectories will be included. Default is "
-        + image_test_folder,
+             + image_test_folder,
     )
-
     parser.add_argument(
         "--output",
         type=str,
         default=detection_results_folder,
         help="Output path for detection results. Default is "
-        + detection_results_folder,
+             + detection_results_folder,
     )
-
     parser.add_argument(
         "--no_save_img",
         default=False,
         action="store_true",
         help="Only save bounding box coordinates but do not save output check with annotated boxes. Default is False.",
     )
-
-
     parser.add_argument(
         "--yolo_model",
         type=str,
@@ -195,7 +205,6 @@ if __name__ == "__main__":
         default=model_weights,
         help="Path to pre-trained weight files. Default is " + model_weights,
     )
-
     parser.add_argument(
         "--anchors",
         type=str,
@@ -203,7 +212,6 @@ if __name__ == "__main__":
         default=anchors_path,
         help="Path to YOLO anchors. Default is " + anchors_path,
     )
-
     parser.add_argument(
         "--classes",
         type=str,
@@ -211,11 +219,9 @@ if __name__ == "__main__":
         default=model_classes,
         help="Path to YOLO class specifications. Default is " + model_classes,
     )
-
     parser.add_argument(
         "--gpu_num", type=int, default=1, help="Number of GPU to use. Default is 1"
     )
-
     parser.add_argument(
         "--confidence",
         type=float,
@@ -223,16 +229,14 @@ if __name__ == "__main__":
         default=0.25,
         help="Threshold for YOLO object confidence score to show predictions. Default is 0.25.",
     )
-
     parser.add_argument(
         "--box_file",
         type=str,
         dest="box",
         default=detection_results_file,
         help="File to save bounding box results to. Default is "
-        + detection_results_file,
+             + detection_results_file,
     )
-
     parser.add_argument(
         "--postfix",
         type=str,
@@ -240,36 +244,19 @@ if __name__ == "__main__":
         default="_catface",
         help='Specify the postfix for images with bounding boxes. Default is "_catface"',
     )
-
     parser.add_argument(
         "--is_tiny",
         default=False,
         action="store_true",
         help="Use the tiny Yolo version for better performance and less accuracy. Default is False.",
     )
-
     FLAGS = parser.parse_args()
-
     inputs_filepath = FLAGS.multiple_inputs_filepath
-
     if FLAGS.is_tiny and FLAGS.anchors_path == anchors_path:
         anchors_path = os.path.join(
             os.path.dirname(FLAGS.anchors_path), "yolo-tiny_anchors.txt"
         )
     anchors = get_anchors(anchors_path)
-
-    # define YOLO detector
-    yolo = YOLO(
-        **{
-            "model_path": FLAGS.model_path,
-            "anchors_path": anchors_path,
-            "classes_path": FLAGS.classes_path,
-            "score": FLAGS.score,
-            "gpu_num": FLAGS.gpu_num,
-            "model_image_size": (256, 256),
-        }
-    )
-
     # predict from single directory or multiple inputs
     if inputs_filepath:
         # get a list of all input directories
@@ -284,6 +271,9 @@ if __name__ == "__main__":
 
     else:
         predict_input_dir(FLAGS, FLAGS.input_path, FLAGS.output)
-
     # Close the current yolo session
     yolo.close_session()
+
+
+if __name__ == "__main__":
+    detect()

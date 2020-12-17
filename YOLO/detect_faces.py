@@ -12,9 +12,15 @@ def make_call_string(arglist):
     return result_string
 
 
-def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None, save_images=True):
+def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None, save_images=True, yolo_model=None):
     """Detect faces in input_dir and put on output_dir. If detecting for multiple input directories,
     A file with input directory paths shold be provided.
+    Args:
+        input_dir: directory with input images
+        output_dir: directory to put output file
+        multiple_inputs_flilepath: a file which contains multiple input directories if needed
+        save_images: flag whether to save detected images
+        yolo_model: initialized yolo model for faster inferring
     """
 
     # create paths
@@ -74,4 +80,4 @@ def detect_dataset_faces():
 
 if __name__ == '__main__':
     images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    detect_faces(images_dir + '/49403512/raw', images_dir + '/49403512/detected', save_images=False)
+    detect_faces(images_dir + '/49782535/raw', 'check', save_images=True)

@@ -96,7 +96,7 @@ def download_cats(zipcode, n_pages=5, start_page=1, start_client=0):
     count = 0
     # document every download to index.txt
     for page in range(start_page, n_pages):
-        request = f'animals?type=cat&page={page}&location={zipcode}'
+        request = f'animals?type=cat&page={page}&location={zipcode}&distance=200'
         response, response_code = petfinder_request(request, client)
 
         # check response code
@@ -171,6 +171,6 @@ if __name__ == '__main__':
         '30303',  # atlanta
         '80814'   # colorado
     ]
-    for zone in range(5, 9):
+    for zone in range(0, 9):
         print(zone)
         download_cats(zipcodes[zone], n_pages=1500, start_client=3)
