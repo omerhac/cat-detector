@@ -5,6 +5,7 @@ import os
 import matplotlib.pyplot as plt
 import utilities
 import detect_faces
+import pickle
 
 
 class CatVerificator():
@@ -12,28 +13,48 @@ class CatVerificator():
     Attributes:
         cat_embedder: CatEmbedder model to embed cat images
         threshold: threshold for separating different and same cats
+        data_dir: directory to store application data
 
     Methods:
          set_threhold: set separating threshold
          is_same_cat: check whether to images are of the same cat
+         set_own_image: sets the own cat image of the application
+         resize_input: resizes input images for CatEmbedder digestion
     """
 
-    def __init__(self, cat_embedder, threshold, data_dir='data'):
+    def __init__(self, embedder_input_shape, threshold=1.25, data_dir='data', load_data=False):
         """Initialize a cat verficator.
         Args:
-            cat_embedder: CatEmbedder model
+            embedder_input_shape: input image shape of cat embedder
             threshold: separating threshold
             data_dir: directory for storing application data
+            load_data: whether to load application data from directory
         """
 
-        self._cat_embedder = cat_embedder
+        # load model from last checkpoint
+        self._cat_embedder = CatEmbedder(input_shape=embedder_input_shape)
+        self._cat_embedder.load_checkpoint(tf.train.latest_checkpoint('weights/checkpoints'))
+
+        # set attrs
         self._threshold = threshold
         self._data_dir = data_dir
         self._own_embedding = None
 
+        # load data if required
+        if load_data:
+            self._threshold = float(open(data_dir + '/threshold.txt', 'r').readline())
+            self._own_embedding = pickle.load(open(data_dir + '/own_embedding.dat', 'rb'))
+
+        # save data
+        else:
+            if not os.path.exists(data_dir):
+                os.makedirs(data_dir)
+            open(data_dir + '/threshold.txt', 'w').write(str(self._threshold))
+
     def set_threshold(self, threshold):
         """Set new threshold to threshold"""
         self._threshold = threshold
+        open(data_dir + '/threshold.txt', 'w').write(str(self._threshold))
 
     def resize_input(self, image):
         """Resize image so it fits cat embedder input shape"""
@@ -85,17 +106,17 @@ class CatVerificator():
         cropped_own = self.resize_input(cropped_own)  # resize to cat embedder input shape
         self._own_embedding = self._cat_embedder(cropped_own)
 
+        # dump embedding
+        pickle.dump(self._own_embedding, open(self._data_dir + '/own_embedding.dat', 'wb'))
+
 
 if __name__ == '__main__':
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    path1 = base_dir + '/49726525/raw/1.jpg'
-    path2 = base_dir + '/49403512/raw/4.jpg'
+    path1 = base_dir + '/49782535/raw/1.jpg'
+    path2 = base_dir + '/49782535/raw/4.jpg'
     cat1 = plt.imread(path1)
     cat2 = plt.imread(path2)
 
-    cat_embedder = CatEmbedder(input_shape=[64, 64, 3])
-    cat_embedder.load_checkpoint('weights/checkpoints/ckpt-2')
-
-    cat_ver = CatVerificator(cat_embedder, 1.25, 'data')
-    print(cat_ver.is_same_cat(cat1, cat2))
-    cat_ver.set_own_image(cat1)
+    cat_ver = CatVerificator([64, 64, 3], 1.25, 'data', load_data=True)
+    print(cat_ver._own_embedding)
+    print(cat_ver._threshold)
