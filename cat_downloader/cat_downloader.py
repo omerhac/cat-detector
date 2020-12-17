@@ -167,8 +167,10 @@ if __name__ == '__main__':
         '90120',  # LA
         '75001',  # Dallas
         '63101',  # St Louis
-        '94016'  # SF
+        '94016',  # SF
+        '30303',  # atlanta
+        '80814'   # colorado
     ]
-    for zone in range(1, 6):
+    for zone in range(5, 9):
         print(zone)
         download_cats(zipcodes[zone], n_pages=1500, start_client=3)

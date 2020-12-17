@@ -1,0 +1,2 @@
+image,image_path,xmin,ymin,xmax,ymax,label,confidence,x_size,y_size
+own.jpg,/opt/project/demo/data/images/raw/own.jpg,0,3,80,86,0,0.9831811785697937,80,103

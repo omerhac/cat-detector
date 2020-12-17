@@ -2,6 +2,10 @@ from abc import ABC
 import tensorflow as tf
 from triplet_loss import _get_anchor_negative_triplet_mask, _get_anchor_positive_triplet_mask, _pairwise_distances
 import numpy as np
+import os
+
+# define dir path
+dir_path = os.path.dirname(os.path.abspath(__file__))
 
 
 class CatEmbedder(tf.keras.Model, ABC):
@@ -14,7 +18,7 @@ class CatEmbedder(tf.keras.Model, ABC):
 
         # initialize efficienetnet with imagenet weights
         self._efnet = tf.keras.applications.EfficientNetB2(include_top=False, pooling='avg', input_shape=input_shape,
-                                                           weights='weights/efficientnetb2_notop.h5')
+                                                           weights=dir_path + '/weights/efficientnetb2_notop.h5')
         self._efnet.trainable = False
 
         self._dense_rep = tf.keras.layers.Dense(64, activation='linear', name='dense_rep')

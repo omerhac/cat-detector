@@ -7,6 +7,9 @@ import utilities
 import detect_faces
 import pickle
 
+# define dir path
+dir_path = os.path.dirname(os.path.abspath(__file__))
+
 
 class CatVerificator():
     """Cat verificator object
@@ -39,7 +42,7 @@ class CatVerificator():
 
         # load model from last checkpoint
         self._cat_embedder = CatEmbedder(input_shape=embedder_input_shape)
-        self._cat_embedder.load_checkpoint(tf.train.latest_checkpoint('weights/checkpoints'))
+        self._cat_embedder.load_checkpoint(tf.train.latest_checkpoint(dir_path + '/weights/checkpoints'))
 
         # set attrs
         self._threshold = threshold
@@ -90,6 +93,8 @@ class CatVerificator():
         Args:
             cat: cropped image of a face of a cat. array/tensor
         """
+
+        assert self._own_embedding is not None, "No own image chosen yet"
         # resize input
         cat = self.resize_input(cat)
 
