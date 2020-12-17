@@ -4,6 +4,10 @@ import time
 import glob
 import sys
 
+# add detector path
+sys.path.append('3_Inference')
+import Detector
+
 
 def make_call_string(arglist):
     result_string = ""
@@ -38,29 +42,36 @@ def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None, save_ima
     anchors = os.path.join(
         root_folder, "2_Training", "src", "keras_yolo3", "model_data", "yolo_anchors.txt"
     )
-    arglist = [
-        ["input_path", input_dir],
-        ["classes", classes_file],
-        ["output", output_dir],
-        ["yolo_model", model_weights],
-        ["box_file", result_file],
-        ["anchors", anchors],
-    ]
 
-    # check for multiple inputs
-    if multiple_inputs_flilepath:
-        arglist.append(["multiple_inputs_filepath", multiple_inputs_flilepath])
+    # inferring mode: with or without initialized model
+    if yolo_model:
+        Detector.predict_input_dir(model_weights, classes_file, 0.25, 1, not save_images, '_catface',
+                                   result_file, input_dir, output_dir, yolo=yolo_model)
 
-    # check whether to save detected images
-    if not save_images:
-        arglist.append(['no_save_img', ' '])
+    else:
+        arglist = [
+            ["input_path", input_dir],
+            ["classes", classes_file],
+            ["output", output_dir],
+            ["yolo_model", model_weights],
+            ["box_file", result_file],
+            ["anchors", anchors],
+        ]
 
-    call_string = " ".join(["python", detector_script, make_call_string(arglist)])
-    print("Detecting Cat Faces by calling: \n\n", call_string, "\n")
-    start = time.time()
-    subprocess.call(call_string, shell=True)
-    end = time.time()
-    print("Detected Cat Faces in {0:.1f} seconds".format(end - start))
+        # check for multiple inputs
+        if multiple_inputs_flilepath:
+            arglist.append(["multiple_inputs_filepath", multiple_inputs_flilepath])
+
+        # check whether to save detected images
+        if not save_images:
+            arglist.append(['no_save_img', ' '])
+
+        call_string = " ".join(["python", detector_script, make_call_string(arglist)])
+        print("Detecting Cat Faces by calling: \n\n", call_string, "\n")
+        start = time.time()
+        subprocess.call(call_string, shell=True)
+        end = time.time()
+        print("Detected Cat Faces in {0:.1f} seconds".format(end - start))
 
 
 def detect_dataset_faces():
@@ -80,4 +91,3 @@ def detect_dataset_faces():
 
 if __name__ == '__main__':
     images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    detect_faces(images_dir + '/49782535/raw', 'check', save_images=True)

@@ -52,7 +52,7 @@ anchors_path = os.path.join(src_path, "keras_yolo3", "model_data", "yolo_anchors
 FLAGS = None
 
 
-def predict_input_dir(FLAGS, input_dir, output_dir, yolo=None):
+def predict_input_dir(model_path, classes_path, score, gpu_num, no_save_img, postfix, box, input_dir, output_dir, yolo=None):
     """Detect faces in input_dir.
     Args:
         FLAGS: parsed args from commandline
@@ -65,11 +65,11 @@ def predict_input_dir(FLAGS, input_dir, output_dir, yolo=None):
     if not yolo:
         yolo = YOLO(
             **{
-                "model_path": FLAGS.model_path,
+                "model_path": model_path,
                 "anchors_path": anchors_path,
-                "classes_path": FLAGS.classes_path,
-                "score": FLAGS.score,
-                "gpu_num": FLAGS.gpu_num,
+                "classes_path": classes_path,
+                "score": score,
+                "gpu_num": gpu_num,
                 "model_image_size": (256, 256),
             }
         )
@@ -87,7 +87,7 @@ def predict_input_dir(FLAGS, input_dir, output_dir, yolo=None):
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
 
-    save_img = not FLAGS.no_save_img  # whether to save detected images
+    save_img = not no_save_img  # whether to save detected images
 
     # Make a dataframe for the prediction outputs
     out_df = pd.DataFrame(
@@ -105,7 +105,7 @@ def predict_input_dir(FLAGS, input_dir, output_dir, yolo=None):
         ]
     )
     # labels to draw on check
-    class_file = open(FLAGS.classes_path, "r")
+    class_file = open(classes_path, "r")
     input_labels = [line.rstrip("\n") for line in class_file.readlines()]
     print("Found {} input labels: {} ...".format(len(input_labels), input_labels))
     if input_image_paths:
@@ -125,7 +125,7 @@ def predict_input_dir(FLAGS, input_dir, output_dir, yolo=None):
                 img_path,
                 save_img=save_img,
                 save_img_path=output_dir,
-                postfix=FLAGS.postfix,
+                postfix=postfix,
             )
             y_size, x_size, _ = np.array(image).shape
             for single_prediction in prediction:
@@ -161,7 +161,10 @@ def predict_input_dir(FLAGS, input_dir, output_dir, yolo=None):
                 len(input_image_paths) / (end - start),
             )
         )
-        out_df.to_csv(FLAGS.box, index=False)
+        out_df.to_csv(box, index=False)
+
+        # Close the current yolo session
+        yolo.close_session()
 
 
 def detect():
@@ -257,6 +260,16 @@ def detect():
             os.path.dirname(FLAGS.anchors_path), "yolo-tiny_anchors.txt"
         )
     anchors = get_anchors(anchors_path)
+
+    # replace FLAGS
+    model_path = FLAGS.model_path
+    classes_path = FLAGS.classes_path
+    score = FLAGS.score
+    gpu_num = FLAGS.gpu_num
+    no_save_img = FLAGS.no_save_img
+    postfix = FLAGS.postfix
+    box = FLAGS.box
+
     # predict from single directory or multiple inputs
     if inputs_filepath:
         # get a list of all input directories
@@ -267,12 +280,10 @@ def detect():
         for dir in input_dirs:
             output_path = dir + '/detected'
             input_path = dir + '/raw'
-            predict_input_dir(FLAGS, input_path, output_path)
+            predict_input_dir(model_path, classes_path, score, gpu_num, no_save_img, postfix, box, input_path, output_path)
 
     else:
-        predict_input_dir(FLAGS, FLAGS.input_path, FLAGS.output)
-    # Close the current yolo session
-    yolo.close_session()
+        predict_input_dir(model_path, classes_path, score, gpu_num, no_save_img, postfix, box, FLAGS.input_path, FLAGS.output)
 
 
 if __name__ == "__main__":
