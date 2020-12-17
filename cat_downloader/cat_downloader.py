@@ -4,6 +4,9 @@ import requests
 import time
 import os
 
+# get root path
+root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+
 
 def authorize(client):
     """Generate new token based on client (1 or 2)credentials and save it to token.dat"""
@@ -125,7 +128,7 @@ def download_cats(zipcode, n_pages=5, start_page=1, start_client=0):
         for cat in cats:
             # create cat path
             cat_id = cat['id']
-            cat_lib = f'images/{cat_id}/raw'
+            cat_lib = root_path + f'/images/{cat_id}/raw'
             if os.path.isdir(cat_lib):
                 print("Skipping cat {}, already exists..".format(cat_id))
             else:
