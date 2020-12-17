@@ -1,0 +1,6 @@
+image,image_path,xmin,ymin,xmax,ymax,label,confidence,x_size,y_size
+diff.jpg,/opt/project/demo/images/diff.jpg,71,65,238,215,0,0.927215576171875,300,400
+diff_1.jpg,/opt/project/demo/images/diff_1.jpg,30,53,238,277,0,0.7519996166229248,300,400
+own.jpg,/opt/project/demo/images/own.jpg,0,3,80,86,0,0.9834719896316528,80,103
+same_1.jpg,/opt/project/demo/images/same_1.jpg,183,0,263,103,0,0.30800652503967285,300,169
+same_2.jpg,/opt/project/demo/images/same_2.jpg,36,19,194,164,0,0.7676325440406799,300,406
