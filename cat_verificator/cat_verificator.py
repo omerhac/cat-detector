@@ -13,11 +13,17 @@ class CatVerificator():
     Attributes:
         cat_embedder: CatEmbedder model to embed cat images
         threshold: threshold for separating different and same cats
-        data_dir: directory to store application data
+        data_dir: directory to store application data. structure:
+            - images
+                - cropped: cropped images
+                - raw: raw images
+            - own_embedding.dat: pickled own embedding
+            - threshold.txt: separating threshold
 
     Methods:
          set_threhold: set separating threshold
-         is_same_cat: check whether to images are of the same cat
+         is_same_cat: check whether 2 images are of the same cat
+         is_own_cat: check whether a cat is own cat
          set_own_image: sets the own cat image of the application
          resize_input: resizes input images for CatEmbedder digestion
     """
