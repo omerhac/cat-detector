@@ -55,7 +55,13 @@ FLAGS = None
 def predict_input_dir(model_path, classes_path, score, gpu_num, no_save_img, postfix, box, input_dir, output_dir, yolo=None):
     """Detect faces in input_dir.
     Args:
-        FLAGS: parsed args from commandline
+        model_path: parsed args from commandline
+        classes_path: parsed args from commandline
+        score: parsed args from commandline
+        gpu_num: parsed args from commandline
+        no_save_img: parsed args from commandline
+        postfix: parsed args from commandline
+        box: parsed args from commandline
         input_dir: input directory with images for detecting faces
         output_dir: output directory for saving images
         yolo: initialized yolo model for faster inferring
