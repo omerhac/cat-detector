@@ -63,7 +63,7 @@ class CatVerificator():
     def set_threshold(self, threshold):
         """Set new threshold to threshold"""
         self._threshold = threshold
-        open(data_dir + '/threshold.txt', 'w').write(str(self._threshold))
+        open(self._data_dir + '/threshold.txt', 'w').write(str(self._threshold))
 
     def resize_input(self, image):
         """Resize image so it fits cat embedder input shape"""

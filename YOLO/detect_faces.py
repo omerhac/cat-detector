@@ -5,7 +5,9 @@ import glob
 import sys
 
 # add detector path
-sys.path.append('3_Inference')
+# get root path
+root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
+sys.path.append(root_path +'/YOLO/3_Inference')
 import Detector
 
 
