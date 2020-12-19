@@ -41,13 +41,14 @@ def loss_function(labels, embeddings, alpha):
     return l_triplet + alpha * l_gor
 
 
-def train_stage(model, dataset, optimizer, dataset_size, batch_size, ckpt_manager, epochs=30):
+def train_stage(model, train_dataset, val_dataset, optimizer, dir_obj, batch_size, ckpt_manager, epochs=30):
     """One training stage in the training process.
     Args:
         model: model to train
-        dataset: cat images dataset. batched and repeated.
+        train_dataset: training cat images dataset. batched and repeated.
+        val_dataset: validation cat images dataset. batched and repeated.
         optimizer: initialized training optimizer
-        dataset_size: number of images in the dataset
+        dir_obj: dictionary containing training and validation directory names
         batch_size: images batch size
         epochs: number of epochs
         ckpt_manager: checkpoint manager
@@ -57,10 +58,15 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, ckpt_manage
     mean_loss = tf.keras.metrics.Mean(name='mean_loss')
     mean_auc = tf.keras.metrics.Mean(name='mean_auc')
 
+    # get dataset size
+    train_size = len(dir_obj['train_dirs'])
+    val_size = len(dir_obj['val_dirs'])
+
     for epoch in range(epochs):
         print(f'Epoch number {epoch}')
 
-        for batch_num, (batch_labels, batch_images) in enumerate(dataset):
+        # train
+        for batch_num, (batch_labels, batch_images) in enumerate(train_dataset):
             # calculate and apply gradients
             with tf.GradientTape() as tape:
                 batch_embeddings = model(batch_images)
@@ -79,11 +85,23 @@ def train_stage(model, dataset, optimizer, dataset_size, batch_size, ckpt_manage
 
             # print loss and accuracy
             if batch_num % 10 == 0:
-                print(f'Batch {batch_num}/{dataset_size//batch_size - 1}, Mean loss is {mean_loss.result()}, Mean AUC is {mean_auc.result()}')
+                print(f'Batch {batch_num}/{train_size//batch_size - 1}, Mean loss is {mean_loss.result()}, Mean AUC is {mean_auc.result()}')
 
             # finished dataset break rule
-            if batch_num == dataset_size // batch_size - 1:
+            if batch_num == train_size // batch_size - 1:
                 break
+
+        # evaluate
+        val_auc = 0
+        for batch_num, (batch_labels, batch_images) in enumerate(val_dataset):
+            batch_embeddings = model(batch_images)
+            # aggregate metric
+            val_auc += auc_score(batch_embeddings, batch_labels)
+            # break rule
+            if batch_num == val_size // batch_size - 1:
+                break
+
+        print(f'Validation AUC score is: {val_auc / (val_size // batch_size)}')
 
         # save model
         if epoch % 5 == 0:
@@ -105,14 +123,18 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
     train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape, type='cropped')
 
-    batch_size = 32
+    # first training stage
+    batch_size = 8
     train_dataset = train_dataset.repeat()
     train_dataset = train_dataset.batch(batch_size)
+
+    val_dataset = val_dataset.repeat()
+    val_dataset = val_dataset.batch(batch_size)
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 
     # load checkpoint
     manager = load_checkpoint(model, optimizer, load_dir=load_dir)
-    train_stage(model, train_dataset, optimizer, len(dir_obj['train_dirs']), batch_size, manager, epochs=10)
+    train_stage(model, train_dataset, val_dataset, optimizer, dir_obj, batch_size, manager, epochs=10)
 
 
 def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):
