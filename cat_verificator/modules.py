@@ -44,6 +44,10 @@ class CatEmbedder(tf.keras.Model, ABC):
             if layer.name in ['top_conv', 'top_bn', 'top_activation', 'avg_pool']:  # check layer is in top layers
                 layer.trainable = True  # make layer trainable
 
+    def unfreeze_all(self):
+        """Unfreeze all model weights"""
+        self._efnet.trainable = True
+
     def get_input_shape(self):
         return self._input_shape
 

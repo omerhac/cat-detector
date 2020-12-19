@@ -118,23 +118,54 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
 
     # initiate a model
     model = CatEmbedder(input_shape=[*image_shape, 3])
-
-    # get dataset
-    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape, type='cropped')
-
-    # first training stage
-    batch_size = 8
-    train_dataset = train_dataset.repeat()
-    train_dataset = train_dataset.batch(batch_size)
-
-    val_dataset = val_dataset.repeat()
-    val_dataset = val_dataset.batch(batch_size)
     optimizer = tf.keras.optimizers.Adam(learning_rate=0.001)
 
     # load checkpoint
     manager = load_checkpoint(model, optimizer, load_dir=load_dir)
-    train_stage(model, train_dataset, val_dataset, optimizer, dir_obj, batch_size, manager, epochs=10)
+
+    # get dataset
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
+    train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape, type='raw')
+
+    # first training stage
+    batch_size = 768
+    train_dataset = train_dataset.repeat()
+    train_dataset_batched = train_dataset.batch(batch_size)
+    val_dataset = val_dataset.repeat()
+    val_dataset_batched = val_dataset.batch(batch_size)
+
+    train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=10)
+
+    # second training stage
+    batch_size = 612
+    train_dataset_batched = train_dataset.batch(batch_size)
+    val_dataset_batched = val_dataset.batch(batch_size)
+
+    # unfreeze top and block 7 weights
+    model.unfreeze_top()
+    model.unfreeze_block(7)
+
+    train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=30)
+
+    # third training stage
+    batch_size = 384
+    train_dataset_batched = train_dataset.batch(batch_size)
+    val_dataset_batched = val_dataset.batch(batch_size)
+
+    # unfreeze block 6 weights
+    model.unfreeze_block(6)
+
+    train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=30)
+
+    # fourth training stage
+    batch_size = 48
+    train_dataset_batched = train_dataset.batch(batch_size)
+    val_dataset_batched = val_dataset.batch(batch_size)
+
+    # unfreeze all weights
+    model.unfreeze_all()
+
+    train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=45)
 
 
 def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):
