@@ -103,7 +103,8 @@ def image_generators(images_dir, image_size=(256, 256), type='raw', validation_s
     validation_dataset = validation_dataset.map(resize_func)
 
     # dir object
-    dir_obj = {'train_dirs': train_dirs, 'val_dirs': val_dirs, 'train_size': len(train_dirs), 'val_size': len(val_dirs)}
+    dir_obj = {'train_dirs': train_dirs, 'val_dirs': val_dirs, 'train_size': len(train_image_paths),
+               'val_size': len(val_image_paths)}
 
     return train_dataset, validation_dataset, dir_obj
 
