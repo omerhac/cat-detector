@@ -39,7 +39,6 @@ class CatVerificator():
             data_dir: directory for storing application data
             load_data: whether to load application data from directory
         """
-
         # load model from last checkpoint
         self._cat_embedder = CatEmbedder(input_shape=embedder_input_shape)
         self._cat_embedder.load_checkpoint(tf.train.latest_checkpoint(dir_path + '/weights/checkpoints'))
@@ -138,10 +137,12 @@ class CatVerificator():
 
 if __name__ == '__main__':
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    path1 = base_dir + '/49782535/raw/1.jpg'
-    path2 = base_dir + '/49786142/raw/4.jpg'
+    path1 = base_dir + '/49403512/raw/1.jpg'
+    path2 = base_dir + '/49403512/raw/4.jpg'
     cat1 = plt.imread(path1)
     cat2 = plt.imread(path2)
 
-    cat_ver = CatVerificator([64, 64, 3], 1.25, 'data', load_data=True)
+    cat_ver = CatVerificator([64, 64, 3], 1.25, 'data', load_data=False)
+    cat_ver.set_own_image(cat1)
     print(cat_ver.is_own_cat(cat2))
+
