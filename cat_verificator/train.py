@@ -48,7 +48,7 @@ def train_stage(model, train_dataset, val_dataset, optimizer, dir_obj, batch_siz
         train_dataset: training cat images dataset. batched and repeated.
         val_dataset: validation cat images dataset. batched and repeated.
         optimizer: initialized training optimizer
-        dir_obj: dictionary containing training and validation directory names
+        dir_obj: dictionary containing training and validation directory names and sizes
         batch_size: images batch size
         epochs: number of epochs
         ckpt_manager: checkpoint manager
@@ -59,8 +59,8 @@ def train_stage(model, train_dataset, val_dataset, optimizer, dir_obj, batch_siz
     mean_auc = tf.keras.metrics.Mean(name='mean_auc')
 
     # get dataset size
-    train_size = len(dir_obj['train_dirs'])
-    val_size = len(dir_obj['val_dirs'])
+    train_size = dir_obj['train_size']
+    val_size = dir_obj['val_size']
 
     for epoch in range(epochs):
         print(f'Epoch number {epoch}')
@@ -128,7 +128,7 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape, type='raw')
 
     # first training stage
-    batch_size = 768
+    batch_size = 384  # 768
     train_dataset = train_dataset.repeat()
     train_dataset_batched = train_dataset.batch(batch_size)
     val_dataset = val_dataset.repeat()

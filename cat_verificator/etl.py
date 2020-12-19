@@ -73,7 +73,8 @@ def image_generators(images_dir, image_size=(256, 256), type='raw', validation_s
         Returns:
             train_dataset: TF dataset with train images resized to image_size
             validation_dataset: TF dataset with validation images resized to image_size
-            dir_object: dict with {train_dirs: list of train dirs, val_dirs: list of validation dirs}
+            dir_object: dict with {train_dirs: list of train dirs, val_dirs: list of validation dirs
+                                    , train_size: number of train images, val_size: number of validation images}
     """
 
     # split train and val dirs
@@ -102,7 +103,7 @@ def image_generators(images_dir, image_size=(256, 256), type='raw', validation_s
     validation_dataset = validation_dataset.map(resize_func)
 
     # dir object
-    dir_obj = {'train_dirs': train_dirs, 'val_dirs': val_dirs}
+    dir_obj = {'train_dirs': train_dirs, 'val_dirs': val_dirs, 'train_size': len(train_dirs), 'val_size': len(val_dirs)}
 
     return train_dataset, validation_dataset, dir_obj
 
