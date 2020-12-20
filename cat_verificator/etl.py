@@ -109,11 +109,13 @@ def image_generators(images_dir, image_size=(256, 256), type='raw', validation_s
     return train_dataset, validation_dataset, dir_obj
 
 
-def remove_non_jpegs(filepath_list):
+def remove_non_jpegs(filepath_list, delete_files=False):
     """Remove non jpeg files from a list of files"""
     for file in filepath_list:
         if imghdr.what(file) != 'jpeg':
             filepath_list.remove(file)
+            if delete_files:
+                os.remove(file)
 
     return filepath_list
 

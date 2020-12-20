@@ -9,6 +9,9 @@ import sys
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root_path +'/YOLO/3_Inference')
 sys.path.append(root_path)
+sys.path.append(root_path + '/cat_verificator')
+
+import etl
 import utilities
 #import Detector
 
@@ -78,11 +81,14 @@ def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None, save_ima
         print("Detected Cat Faces in {0:.1f} seconds".format(end - start))
 
 
-def detect_dataset_faces():
+def detect_dataset_faces(dirs_to_detect=None, save_images=False):
     """Detect faces in all of the dataset images. Keep images in cat_dir/detected."""
     # get dirs
-    images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    cat_dirs = glob.glob(images_dir + '/*')
+    if not dirs_to_detect:
+        images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
+        cat_dirs = glob.glob(images_dir + '/*')
+    else:
+        cat_dirs = dirs_to_detect
 
     # detect faces for all cats
     with open('Data/inputs_file.txt', 'w') as file:
@@ -90,10 +96,23 @@ def detect_dataset_faces():
             file.write(cat + '\n')
 
     detect_faces('Data/Source_Images/Test_Images', 'Data/Source_Images/Test_Image_Detection_Results',
-                 multiple_inputs_flilepath='Data/inputs_file.txt', save_images=False)
+                 multiple_inputs_flilepath='Data/inputs_file.txt', save_images=save_images)
+
+
+def check_detection():
+    """Check which directories were not detected"""
+    # get dirs
+    images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
+    cat_dirs = glob.glob(images_dir + '/*')
+    faulty = []
+    for dir in cat_dirs:
+        if not os.path.exists(dir + '/detected/Detection_Results.csv'):
+            faulty.append(dir)
+    return faulty
 
 
 if __name__ == '__main__':
     images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    detect_dataset_faces()
-    utilities.crop_dataset_bounding_boxes(images_dir)
+    etl.remove_non_jpegs(glob.glob(images_dir + '/*/*/*.jpg'), delete_files=True)
+    l = check_detection()
+    detect_dataset_faces(dirs_to_detect=l, save_images=False)
