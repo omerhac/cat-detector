@@ -90,7 +90,7 @@ def detect_dataset_faces():
             file.write(cat + '\n')
 
     detect_faces('Data/Source_Images/Test_Images', 'Data/Source_Images/Test_Image_Detection_Results',
-                 multiple_inputs_flilepath='Data/inputs_file.txt')
+                 multiple_inputs_flilepath='Data/inputs_file.txt', save_images=False)
 
 
 if __name__ == '__main__':

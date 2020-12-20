@@ -151,7 +151,7 @@ def predict_input_dir(yolo, classes_path, no_save_img, postfix, box, input_dir, 
                 len(input_image_paths) / (end - start),
             )
         )
-        out_df.to_csv(box, index=False)
+        out_df.to_csv(output_dir + '/Detection_Results.csv', index=False)
 
 
 def detect():

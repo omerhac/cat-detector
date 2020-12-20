@@ -134,6 +134,5 @@ def auc_score(batch_embeddings, batch_labels, return_metrics=False):
 
 if __name__ == '__main__':
     a = CatEmbedder(input_shape=[64, 64, 3])
-    a.load_checkpoint()
 
 
