@@ -281,7 +281,7 @@ def detect():
             predict_input_dir(yolo, classes_path, no_save_img, postfix, box, input_path, output_path)
 
     else:
-        predict_input_dir(model_path, classes_path, score, gpu_num, no_save_img, postfix, box, FLAGS.input_path, FLAGS.output)
+        predict_input_dir(yolo, classes_path, no_save_img, postfix, box, FLAGS.input_path, FLAGS.output)
 
     # Close the current yolo session
     yolo.close_session()
