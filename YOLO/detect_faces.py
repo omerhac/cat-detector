@@ -2,15 +2,7 @@ import os
 import subprocess
 import time
 import glob
-import sys
-
-# add detector path
-# get root path
-root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(root_path +'/YOLO/3_Inference')
-sys.path.append(root_path)
-import utilities
-#import Detector
+from Utils import utils
 
 
 def make_call_string(arglist):
@@ -20,7 +12,7 @@ def make_call_string(arglist):
     return result_string
 
 
-def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None, save_images=True, yolo_model=None):
+def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None, save_images=True):
     """Detect faces in input_dir and put on output_dir. If detecting for multiple input directories,
     A file with input directory paths shold be provided.
     Args:
@@ -28,7 +20,6 @@ def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None, save_ima
         output_dir: directory to put output file
         multiple_inputs_flilepath: a file which contains multiple input directories if needed
         save_images: flag whether to save detected images
-        yolo_model: initialized yolo model for faster inferring
     """
 
     # create paths
@@ -47,35 +38,41 @@ def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None, save_ima
         root_folder, "2_Training", "src", "keras_yolo3", "model_data", "yolo_anchors.txt"
     )
 
-    # inferring mode: with or without initialized model
-    if yolo_model:
-        Detector.predict_input_dir(model_weights, classes_file, 0.25, 1, not save_images, '_catface',
-                                   result_file, input_dir, output_dir, yolo=yolo_model)
+    arglist = [
+        ["input_path", input_dir],
+        ["classes", classes_file],
+        ["output", output_dir],
+        ["yolo_model", model_weights],
+        ["box_file", result_file],
+        ["anchors", anchors],
+    ]
 
-    else:
-        arglist = [
-            ["input_path", input_dir],
-            ["classes", classes_file],
-            ["output", output_dir],
-            ["yolo_model", model_weights],
-            ["box_file", result_file],
-            ["anchors", anchors],
-        ]
+    # check for multiple inputs
+    if multiple_inputs_flilepath:
+        arglist.append(["multiple_inputs_filepath", multiple_inputs_flilepath])
 
-        # check for multiple inputs
-        if multiple_inputs_flilepath:
-            arglist.append(["multiple_inputs_filepath", multiple_inputs_flilepath])
+    # check whether to save detected images
+    if not save_images:
+        arglist.append(['no_save_img', ' '])
 
-        # check whether to save detected images
-        if not save_images:
-            arglist.append(['no_save_img', ' '])
+    call_string = " ".join(["python", detector_script, make_call_string(arglist)])
+    print("Detecting Cat Faces by calling: \n\n", call_string, "\n")
+    start = time.time()
+    subprocess.call(call_string, shell=True)
+    end = time.time()
+    print("Detected Cat Faces in {0:.1f} seconds".format(end - start))
 
-        call_string = " ".join(["python", detector_script, make_call_string(arglist)])
-        print("Detecting Cat Faces by calling: \n\n", call_string, "\n")
-        start = time.time()
-        subprocess.call(call_string, shell=True)
-        end = time.time()
-        print("Detected Cat Faces in {0:.1f} seconds".format(end - start))
+
+def detect_faces_online(image, yolo_model):
+    """Detect faces in an online fashion from image. Requires an initialized yolo model.
+    Args:
+        image: input image to be detected
+        yolo_model: initialized yolo model
+    """
+
+    predictions, image = utils.detect_object(
+        yolo_model,
+    )
 
 
 def detect_dataset_faces():
@@ -95,5 +92,3 @@ def detect_dataset_faces():
 
 if __name__ == '__main__':
     images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    detect_dataset_faces()
-    utilities.crop_dataset_bounding_boxes(images_dir)
