@@ -63,18 +63,6 @@ def detect_faces(input_dir, output_dir, multiple_inputs_flilepath=None, save_ima
     print("Detected Cat Faces in {0:.1f} seconds".format(end - start))
 
 
-def detect_faces_online(image, yolo_model):
-    """Detect faces in an online fashion from image. Requires an initialized yolo model.
-    Args:
-        image: input image to be detected
-        yolo_model: initialized yolo model
-    """
-
-    predictions, image = utils.detect_object(
-        yolo_model,
-    )
-
-
 def detect_dataset_faces():
     """Detect faces in all of the dataset images. Keep images in cat_dir/detected."""
     # get dirs
