@@ -137,7 +137,7 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=10)
 
     # second training stage
-    batch_size = 612
+    batch_size = 384  # 612
     train_dataset_batched = train_dataset.batch(batch_size)
     val_dataset_batched = val_dataset.batch(batch_size)
 
@@ -165,7 +165,7 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     # unfreeze all weights
     model.unfreeze_all()
 
-    train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=45)
+    #train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=45)
 
 
 def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):

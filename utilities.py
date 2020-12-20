@@ -64,7 +64,7 @@ def crop_dataset_bounding_boxes(images_dir):
     cat_dirs = glob.glob(images_dir + '/*')  # get all cat directories
 
     # crop images for each cat
-    for cat in cat_dirs:
+    for i, cat in enumerate(cat_dirs):
         # paths to files of each cat
         raw_images = cat + '/raw'
         cropped_images = cat + '/cropped'
@@ -72,6 +72,9 @@ def crop_dataset_bounding_boxes(images_dir):
 
         # crop
         crop_directory_bounding_boxes(raw_images, cropped_images, csv_path)
+
+        if i % 100 == 0:
+            print(f'Cropped {i} / {len(cat_dirs)} directories..')
 
 
 if __name__ == '__main__':

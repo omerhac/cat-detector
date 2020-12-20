@@ -8,6 +8,8 @@ import sys
 # get root path
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root_path +'/YOLO/3_Inference')
+sys.path.append(root_path)
+import utilities
 #import Detector
 
 
@@ -93,3 +95,5 @@ def detect_dataset_faces():
 
 if __name__ == '__main__':
     images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
+    detect_dataset_faces()
+    utilities.crop_dataset_bounding_boxes(images_dir)

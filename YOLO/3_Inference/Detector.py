@@ -52,13 +52,10 @@ anchors_path = os.path.join(src_path, "keras_yolo3", "model_data", "yolo_anchors
 FLAGS = None
 
 
-def predict_input_dir(model_path, classes_path, score, gpu_num, no_save_img, postfix, box, input_dir, output_dir, yolo=None):
+def predict_input_dir(yolo, classes_path, no_save_img, postfix, box, input_dir, output_dir):
     """Detect faces in input_dir.
     Args:
-        model_path: parsed args from commandline
         classes_path: parsed args from commandline
-        score: parsed args from commandline
-        gpu_num: parsed args from commandline
         no_save_img: parsed args from commandline
         postfix: parsed args from commandline
         box: parsed args from commandline
@@ -66,19 +63,6 @@ def predict_input_dir(model_path, classes_path, score, gpu_num, no_save_img, pos
         output_dir: output directory for saving images
         yolo: initialized yolo model for faster inferring
     """
-
-    # define YOLO detector
-    if not yolo:
-        yolo = YOLO(
-            **{
-                "model_path": model_path,
-                "anchors_path": anchors_path,
-                "classes_path": classes_path,
-                "score": score,
-                "gpu_num": gpu_num,
-                "model_image_size": (256, 256),
-            }
-        )
 
     # get images paths from input directory
     input_paths = GetFileList(input_dir)
@@ -168,9 +152,6 @@ def predict_input_dir(model_path, classes_path, score, gpu_num, no_save_img, pos
             )
         )
         out_df.to_csv(box, index=False)
-
-        # Close the current yolo session
-        yolo.close_session()
 
 
 def detect():
@@ -276,6 +257,17 @@ def detect():
     postfix = FLAGS.postfix
     box = FLAGS.box
 
+    yolo = YOLO(
+        **{
+            "model_path": model_path,
+            "anchors_path": anchors_path,
+            "classes_path": classes_path,
+            "score": score,
+            "gpu_num": gpu_num,
+            "model_image_size": (256, 256),
+        }
+    )
+
     # predict from single directory or multiple inputs
     if inputs_filepath:
         # get a list of all input directories
@@ -286,10 +278,13 @@ def detect():
         for dir in input_dirs:
             output_path = dir + '/detected'
             input_path = dir + '/raw'
-            predict_input_dir(model_path, classes_path, score, gpu_num, no_save_img, postfix, box, input_path, output_path)
+            predict_input_dir(yolo, classes_path, no_save_img, postfix, box, input_path, output_path)
 
     else:
         predict_input_dir(model_path, classes_path, score, gpu_num, no_save_img, postfix, box, FLAGS.input_path, FLAGS.output)
+
+    # Close the current yolo session
+    yolo.close_session()
 
 
 if __name__ == "__main__":
