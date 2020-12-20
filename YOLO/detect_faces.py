@@ -2,7 +2,6 @@ import os
 import subprocess
 import time
 import glob
-from Utils import utils
 
 
 def make_call_string(arglist):

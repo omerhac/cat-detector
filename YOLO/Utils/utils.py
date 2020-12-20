@@ -305,7 +305,7 @@ def draw_annotated_box(image, box_list_list, label_list, color_list):
     """
 
     font_path = os.path.join(
-        os.path.dirname(__file__), "keras_yolo3/font/FiraMono-Medium.otf"
+        os.path.dirname(os.path.dirname(os.path.abspath(__file__))), "2_Training/src/keras_yolo3/font/FiraMono-Medium.otf"
     )
     font = ImageFont.truetype(
         font=font_path, size=np.floor(3e-2 * image.size[1] + 0.5).astype("int32")

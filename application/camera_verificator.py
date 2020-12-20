@@ -7,10 +7,14 @@ import numpy as np
 # get root path
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root_path + '/YOLO/2_Training/src')
+
+# import YOLO dependencies
 from keras_yolo3.yolo import YOLO
+from YOLO.Utils import utils
 
 
 def run():
+    print("Loading model...")
     # initialize yolo model
     model_path = root_path + '/YOLO/Data/Model_Weights/trained_weights_final.h5'
     anchors_path = root_path + '/YOLO/2_Training/src/keras_yolo3/model_data/yolo_anchors.txt'
@@ -35,9 +39,22 @@ def run():
 
         frame = Image.fromarray(frame)
         # detect faces
-        predictions, image = yolo.detect_image(frame, show_stats=False)
-        print(predictions)
-        cv2.imshow("Window", np.asarray(frame))
+        predictions, _ = yolo.detect_image(frame, show_stats=False)
+
+        # check if theres more then one cat
+        if len(predictions) > 1:
+            # draw yellow bboxes
+            annotated_image = utils.draw_annotated_box(frame, [predictions], ['To_Many_Cats'], [(85, 255, 255)])
+        elif True:
+            # draw green bbox
+            annotated_image = utils.draw_annotated_box(frame, [predictions], ['Own_Cat'], [(85, 255, 85)])
+        else:
+            # draw red bbox
+            annotated_image = utils.draw_annotated_box(frame, [predictions], ['Own_Cat'], [(255, 255, 255)])
+
+        # show image
+
+        cv2.imshow("Window", np.asarray(annotated_image))
         # This breaks on 'q' key
         if cv2.waitKey(1) & 0xFF == ord('q'):
             break
