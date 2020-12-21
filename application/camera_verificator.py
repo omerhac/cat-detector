@@ -3,18 +3,24 @@ import sys
 import os
 from PIL import Image
 import numpy as np
+import matplotlib.pyplot as plt
 
 # get root path
 root_path = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 sys.path.append(root_path + '/YOLO/2_Training/src')
+sys.path.append(root_path + '/cat_verificator')
 
 # import YOLO dependencies
 from keras_yolo3.yolo import YOLO
 from YOLO.Utils import utils
 
+# import cat verificator dependencies
+from cat_verificator import CatVerificator
+
 
 def run():
     print("Loading model...")
+
     # initialize yolo model
     model_path = root_path + '/YOLO/Data/Model_Weights/trained_weights_final.h5'
     anchors_path = root_path + '/YOLO/2_Training/src/keras_yolo3/model_data/yolo_anchors.txt'
@@ -29,7 +35,6 @@ def run():
             "model_image_size": (256, 256),
         }
     )
-
     # open camera feed
     video_capture = cv2.VideoCapture(0)
     cv2.namedWindow("Window")

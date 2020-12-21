@@ -1,6 +1,6 @@
 image,image_path,xmin,ymin,xmax,ymax,label,confidence,x_size,y_size
-h.jpg,/opt/project/demo/images/h.jpg,71,65,238,215,0,0.927215576171875,300,400
-diff.jpg,/opt/project/demo/images/diff.jpg,36,19,194,164,0,0.7676326632499695,300,406
-own.jpg,/opt/project/demo/images/own.jpg,0,3,80,86,0,0.9834719896316528,80,103
-diff_1.jpg,/opt/project/demo/images/diff_1.jpg,30,53,238,277,0,0.7519996166229248,300,400
-same_1.jpg,/opt/project/demo/images/same_1.jpg,183,0,263,103,0,0.30800673365592957,300,169
+diff.jpg,/Users/nurithofesh/PycharmProjects/cat-detector/demo/images/diff.jpg,48,46,262,228,0,0.9746476411819458,300,400
+own.jpg,/Users/nurithofesh/PycharmProjects/cat-detector/demo/images/own.jpg,6,3,79,89,0,0.9986051917076111,80,103
+diff_1.jpg,/Users/nurithofesh/PycharmProjects/cat-detector/demo/images/diff_1.jpg,14,25,251,293,0,0.9974928498268127,300,400
+same_2.jpg,/Users/nurithofesh/PycharmProjects/cat-detector/demo/images/same_2.jpg,54,12,186,173,0,0.9371743202209473,300,406
+same_1.jpg,/Users/nurithofesh/PycharmProjects/cat-detector/demo/images/same_1.jpg,193,6,259,76,0,0.4632520079612732,300,169
