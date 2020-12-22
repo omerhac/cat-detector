@@ -3,6 +3,7 @@ import tensorflow as tf
 from triplet_loss import _get_anchor_negative_triplet_mask, _get_anchor_positive_triplet_mask, _pairwise_distances
 import numpy as np
 import os
+import etl
 
 # define dir path
 dir_path = os.path.dirname(os.path.abspath(__file__))
@@ -132,8 +133,26 @@ def auc_score(batch_embeddings, batch_labels, return_metrics=False):
         return area
 
 
+def examine_thresholds(input_shape, cat_embedder=None, type='raw', examples_number=32):
+    """Print TPR and FPR for threshold range"""
+    if not cat_embedder:
+        cat_embedder = CatEmbedder(input_shape=input_shape)
+        cat_embedder.load_checkpoint(tf.train.latest_checkpoint('weights/checkpoints'))
+
+    # get dataset
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
+    train_dataset, val_dataset, _ = etl.image_generators(base_dir, (input_shape[0], input_shape[1]), type=type)
+    train_dataset = train_dataset.batch(examples_number)
+
+    for batch_labels, batch_images in train_dataset.take(1):
+        batch_embeddings = cat_embedder(batch_images)
+        _, metrics = auc_score(batch_embeddings, batch_labels, return_metrics=True)
+
+    for threshold in metrics:
+        print(f'Threshold {threshold}: TPR-{metrics[threshold][0]} FPR-{metrics[threshold][1]}')
+
+
 if __name__ == '__main__':
-    a = CatEmbedder(input_shape=[64, 64, 3])
-    a.load_checkpoint()
+    examine_thresholds([64, 64, 3])
 
 
