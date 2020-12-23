@@ -15,6 +15,8 @@ dir_path = os.path.dirname(os.path.abspath(__file__))
 # disable eager execution
 tf.compat.v1.disable_eager_execution()
 
+# disable logging
+tf.get_logger().setLevel('ERROR')
 
 class CatVerificator():
     """Cat verificator object
@@ -92,11 +94,12 @@ class CatVerificator():
     def create_verification_graph(self):
         """Create the graph used for verification"""
         resized_cat = self.resize_input(self._image_to_verify)
-        cat_embedd = self._cat_embedder([resized_cat])
+        resized_cat = tf.expand_dims(resized_cat, axis=0)  # add batch dimension
+        cat_embedd = self._cat_embedder(resized_cat)
 
         # get distance
         distance = tf.reduce_sum(tf.pow(cat_embedd - self._own_embedding_ph, 2))
-        return distance < self._threshold, distance
+        return distance < self._threshold
 
     def is_own_cat(self, cat):
         """Check whether cat and own cat are the same cat. Resize image if necessary.
@@ -137,7 +140,7 @@ class CatVerificator():
         cropped_own = plt.imread(cropped_images_path + '/own.jpg')
         input_image = tf.compat.v1.placeholder(tf.float32, shape=[None, None, 3])
         cropped_input = self.resize_input(input_image)  # resize to cat embedder input shape
-        embedd = self._cat_embedder(cropped_input)
+        embedd = self._cat_embedder(tf.expand_dims(cropped_input, axis=0))
         self._own_embedding = self._sess.run(embedd, feed_dict={input_image: cropped_own})
 
         # dump embedding
