@@ -18,6 +18,7 @@ tf.compat.v1.disable_eager_execution()
 # disable logging
 tf.get_logger().setLevel('ERROR')
 
+
 class CatVerificator():
     """Cat verificator object
     Attributes:
@@ -53,8 +54,8 @@ class CatVerificator():
             load_data: whether to load application data from directory
         """
         # load model from last checkpoint
-        self._cat_embedder = CatEmbedder(input_shape=embedder_input_shape)
-        self._cat_embedder.load_checkpoint(tf.train.latest_checkpoint(dir_path + '/weights/checkpoints'))
+        self._cat_embedder = CatEmbedder(input_shape=embedder_input_shape,
+                                         ckpt_path=tf.train.latest_checkpoint(dir_path + '/weights/checkpoints'))
 
         # set attrs
         self._threshold = threshold
@@ -156,5 +157,10 @@ if __name__ == '__main__':
 
     cat_ver = CatVerificator([64, 64, 3], 1.1, 'data', load_data=True)
     #cat_ver.set_own_image(cat1)
-    print(cat_ver.is_own_cat(cat2))
+    #print(cat_ver.is_own_cat(cat2))
+    sess = K.get_session()
+    vars = cat_ver._cat_embedder.trainable_variables
+    vars_vals = sess.run(vars)
+    for var in vars_vals:
+        print(np.sum(var))
 

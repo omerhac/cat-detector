@@ -12,7 +12,7 @@ dir_path = os.path.dirname(os.path.abspath(__file__))
 class CatEmbedder(tf.keras.Model, ABC):
     """Cat embedder model"""
 
-    def __init__(self, input_shape=(256, 256, 3)):
+    def __init__(self, input_shape=(256, 256, 3), ckpt_path=None):
         super(CatEmbedder, self).__init__()
 
         self._input_shape = input_shape
@@ -24,7 +24,10 @@ class CatEmbedder(tf.keras.Model, ABC):
 
         self._dense_rep = tf.keras.layers.Dense(64, activation='linear', name='dense_rep')
 
-    def __call__(self, x):
+        if ckpt_path:
+            self.load_checkpoint(ckpt_path=ckpt_path)
+
+    def call(self, x):
         efnet_out = self._efnet(x)
         dense_rep = self._dense_rep(efnet_out)
 
@@ -153,6 +156,8 @@ def examine_thresholds(input_shape, cat_embedder=None, type='raw', examples_numb
 
 
 if __name__ == '__main__':
-    examine_thresholds([64, 64, 3])
+    a = CatEmbedder(input_shape=[64, 64, 3])
+
+    a.save_weights('check')
 
 
