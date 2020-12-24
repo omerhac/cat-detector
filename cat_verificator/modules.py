@@ -33,19 +33,19 @@ class CatEmbedder(tf.keras.Model, ABC):
 
     def unfreeze_block(self, block_num):
         """Unfreeze layers from block_num parameters"""
-        for layer in self._efnet.layers:
+        for layer in self._model.layers[0].layers:
             if layer.name[5] == str(block_num):  # check layers block
                 layer.trainable = True  # make layer trainable
 
     def unfreeze_top(self):
         """Unfreeze top layers after blocks parameters"""
-        for layer in self._efnet.layers:
+        for layer in self._model.layers[0].layers:
             if layer.name in ['top_conv', 'top_bn', 'top_activation', 'avg_pool']:  # check layer is in top layers
                 layer.trainable = True  # make layer trainable
 
     def unfreeze_all(self):
         """Unfreeze all model weights"""
-        self._efnet.trainable = True
+        self._model.layers[0].trainable = True
 
     def get_input_shape(self):
         return self._input_shape
@@ -160,7 +160,15 @@ def examine_thresholds(input_shape, cat_embedder=None, type='raw', examples_numb
 
 if __name__ == '__main__':
     a = CatEmbedder(input_shape=[64, 64, 3])
-    a.save_model('check.h5')
-    a.load_model('check.h5')
+    for layer in a._model.layers[0].layers:
+        print(layer.name, layer.trainable)
+    a.unfreeze_top()
+    a.unfreeze_block(7)
+    for layer in a._model.layers[0].layers:
+        print(layer.name, layer.trainable)
+    a.unfreeze_block(6)
+    for layer in a._model.layers[0].layers:
+        print(layer.name, layer.trainable)
+
 
 

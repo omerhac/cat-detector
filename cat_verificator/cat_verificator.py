@@ -108,6 +108,8 @@ class CatVerificator():
         """Check whether cat and own cat are the same cat. Resize image if necessary.
         Args:
             cat: cropped image of a face of a cat. array/tensor
+        Return:
+            (is_own_cat->bool, distance_from_own_cat->float)
         """
         assert self._own_embedding is not None, "No own cat chosen yet"
 
@@ -153,11 +155,11 @@ class CatVerificator():
 if __name__ == '__main__':
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
     path1 = base_dir + '/49403512/raw/2.jpg'
-    path2 = base_dir + '/49403512/cropped/3.jpg'
+    path2 = base_dir + '/49726525/cropped/4.jpg'
     cat1 = plt.imread(path1)
     cat2 = plt.imread(path2)
 
-    cat_ver = CatVerificator([64, 64, 3], 1.1, 'data', load_data=False)
+    cat_ver = CatVerificator([64, 64, 3], 1.1, 'data', load_data=True)
     cat_ver.set_own_image(cat1)
     print(cat_ver.is_own_cat(cat2))
 
