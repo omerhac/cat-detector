@@ -12,29 +12,24 @@ dir_path = os.path.dirname(os.path.abspath(__file__))
 class CatEmbedder(tf.keras.Model, ABC):
     """Cat embedder model"""
 
-    def __init__(self, input_shape=(256, 256, 3), ckpt_path=None):
+    def __init__(self, input_shape=(256, 256, 3)):
         super(CatEmbedder, self).__init__()
 
         self._input_shape = input_shape
 
         # initialize efficienetnet with imagenet weights
-        self._efnet = tf.keras.applications.EfficientNetB2(include_top=False, pooling='avg', input_shape=input_shape,
-                                                           weights=dir_path + '/weights/efficientnetb2_notop.h5')
-        self._efnet.trainable = False
+        ef_net = tf.keras.applications.EfficientNetB2(include_top=False, pooling='avg', input_shape=input_shape,
+                                                      weights=dir_path + '/weights/efficientnetb2_notop.h5')
+        ef_net.trainable = False
 
-        self._dense_rep = tf.keras.layers.Dense(64, activation='linear', name='dense_rep')
-
-        if ckpt_path:
-            self.load_checkpoint(ckpt_path=ckpt_path)
+        self._model = tf.keras.models.Sequential([
+            ef_net,
+            tf.keras.layers.Dense(64, activation='linear', name='dense_rep'),
+            tf.keras.layers.Lambda(lambda x: tf.keras.backend.l2_normalize(x, axis=1), name='l2_norm')
+        ])
 
     def call(self, x):
-        efnet_out = self._efnet(x)
-        dense_rep = self._dense_rep(efnet_out)
-
-        # l2 normalize
-        dense_rep = tf.keras.backend.l2_normalize(dense_rep, axis=1)
-
-        return dense_rep
+        return self._model(x)
 
     def unfreeze_block(self, block_num):
         """Unfreeze layers from block_num parameters"""
@@ -68,6 +63,14 @@ class CatEmbedder(tf.keras.Model, ABC):
             ckpt_path = tf.train.latest_checkpoint('weights/checkpoints')
             ckpt.restore(ckpt_path)
             print(f'Restored weights from {ckpt_path}')
+
+    def load_model(self, model_path):
+        """Load model and weights from model_path"""
+        self._model = tf.keras.models.load_model(model_path)
+
+    def save_model(self, save_path):
+        """Save model to h5 file"""
+        self._model.save(save_path, save_format='h5', include_optimizer=False)
 
 
 def threshold_metrics(threshold, batch_embeddings, batch_labels):
@@ -157,7 +160,7 @@ def examine_thresholds(input_shape, cat_embedder=None, type='raw', examples_numb
 
 if __name__ == '__main__':
     a = CatEmbedder(input_shape=[64, 64, 3])
-
-    a.save_weights('check')
+    a.save_model('check.h5')
+    a.load_model('check.h5')
 
 

@@ -125,8 +125,8 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
 
     # get dataset
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape, type='raw',
-                                                               validation_split=0.1)
+    train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape, type='cropped',
+                                                               validation_split=0.2)
 
     # first training stage
     batch_size = 32  # 768
@@ -136,6 +136,9 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     val_dataset_batched = val_dataset.batch(batch_size)
 
     train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=10)
+
+    # TODO: move this to the end of training or after each training stage
+    model.save_model('weights/cat_embedder_final.h5')
 
     # second training stage
     batch_size = 384  # 612

@@ -54,8 +54,7 @@ class CatVerificator():
             load_data: whether to load application data from directory
         """
         # load model from last checkpoint
-        self._cat_embedder = CatEmbedder(input_shape=embedder_input_shape,
-                                         ckpt_path=tf.train.latest_checkpoint(dir_path + '/weights/checkpoints'))
+        self._cat_embedder = CatEmbedder(input_shape=embedder_input_shape)
 
         # set attrs
         self._threshold = threshold
@@ -94,13 +93,16 @@ class CatVerificator():
 
     def create_verification_graph(self):
         """Create the graph used for verification"""
+        # load cat_embedder model
+        self._cat_embedder.load_model('weights/cat_embedder_final.h5')
+
         resized_cat = self.resize_input(self._image_to_verify)
         resized_cat = tf.expand_dims(resized_cat, axis=0)  # add batch dimension
         cat_embedd = self._cat_embedder(resized_cat)
 
         # get distance
         distance = tf.reduce_sum(tf.pow(cat_embedd - self._own_embedding_ph, 2))
-        return distance < self._threshold
+        return distance < self._threshold, distance
 
     def is_own_cat(self, cat):
         """Check whether cat and own cat are the same cat. Resize image if necessary.
@@ -151,16 +153,12 @@ class CatVerificator():
 if __name__ == '__main__':
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
     path1 = base_dir + '/49403512/raw/2.jpg'
-    path2 = base_dir + '/49403512/cropped/4.jpg'
+    path2 = base_dir + '/49403512/cropped/3.jpg'
     cat1 = plt.imread(path1)
     cat2 = plt.imread(path2)
 
-    cat_ver = CatVerificator([64, 64, 3], 1.1, 'data', load_data=True)
-    #cat_ver.set_own_image(cat1)
-    #print(cat_ver.is_own_cat(cat2))
-    sess = K.get_session()
-    vars = cat_ver._cat_embedder.trainable_variables
-    vars_vals = sess.run(vars)
-    for var in vars_vals:
-        print(np.sum(var))
+    cat_ver = CatVerificator([64, 64, 3], 1.1, 'data', load_data=False)
+    cat_ver.set_own_image(cat1)
+    print(cat_ver.is_own_cat(cat2))
+
 
