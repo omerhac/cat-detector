@@ -94,7 +94,7 @@ class CatVerificator():
     def create_verification_graph(self):
         """Create the graph used for verification"""
         # load cat_embedder model
-        self._cat_embedder.load_model('weights/cat_embedder_final.h5')
+        self._cat_embedder.load_model(dir_path + '/weights/cat_embedder_final.h5')
 
         resized_cat = self.resize_input(self._image_to_verify)
         resized_cat = tf.expand_dims(resized_cat, axis=0)  # add batch dimension
