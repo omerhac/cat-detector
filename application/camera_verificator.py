@@ -41,7 +41,9 @@ def run():
     )
 
     # initialize verificator model
+    start_time = time.time()
     verificator = CatVerificator([64, 64, 3], threshold=1.2, data_dir=dir_path + '/data', load_data=True)
+    print("Loaded Cat Verficator in {:.2f}sec.".format(time.time() - start_time))
 
     # open camera feed
     video_capture = cv2.VideoCapture(0)
@@ -68,7 +70,7 @@ def run():
 
                 # run verificator
                 same_cat, distance = verificator.is_own_cat(cropped_face)
-                print(same_cat)
+
                 if same_cat:
                     # draw green bbox
                     annotated_image = utils.draw_annotated_box(frame, [predictions], ['Own_Cat'], [(85, 255, 85)])
