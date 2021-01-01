@@ -154,6 +154,8 @@ def download_cats(zipcode, n_pages=5, start_page=1, start_client=0):
         # break rule
         if len(cats) == 0:
             print('No more cats available at zipcode {}'.format(zipcode))
+            with open('index.txt', 'a') as index:
+                index.write('No more cats available at zipcode {}'.format(zipcode))  # document
             return
 
     print(f"Finished {count} cats")
@@ -176,8 +178,15 @@ if __name__ == '__main__':
         '19002',
         '75028',
         '21044',
-        '90210'
+        '90210',
+        '88910',
+        '32244',
+        '33311',
+        '10012',
+        '20002',
+        '10025',
+        '07662'
     ]
-    for zone in range(0, 16):
+    for zone in range(14, 23):
         print(zone)
         download_cats(zipcodes[zone], n_pages=1500, start_client=1)

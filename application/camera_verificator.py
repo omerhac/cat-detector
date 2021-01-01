@@ -42,7 +42,7 @@ def run():
 
     # initialize verificator model
     start_time = time.time()
-    verificator = CatVerificator([64, 64, 3], threshold=1.2, data_dir=dir_path + '/data', load_data=True)
+    verificator = CatVerificator([64, 64, 3], threshold=1.4, data_dir=dir_path + '/data', load_data=True)
     print("Loaded Cat Verficator in {:.2f}sec.".format(time.time() - start_time))
 
     # open camera feed
@@ -58,7 +58,7 @@ def run():
         frame = Image.fromarray(frame)
 
         # detect faces only every second
-        if np.isclose(time.time() - tag_time, 1, rtol=0.05):
+        if np.isclose(time.time() - tag_time, 1, rtol=0.1):
             # detect
             predictions, _ = yolo.detect_image(frame, show_stats=False)
 
