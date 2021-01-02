@@ -2,11 +2,17 @@ from modules import *
 from triplet_loss import _get_anchor_negative_triplet_mask, batch_all_triplet_loss, batch_hard_triplet_loss
 import etl
 import os
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
 import glob
 
 # constants
 MARGIN = 0.4
 ALPHA = 1.1
+
+# use mixed precision
+os.environ['TF_ENABLE_AUTO_MIXED_PRECISION'] = '1'
+policy = mixed_precision.Policy('mixed_float16')
+mixed_precision.set_policy(policy)
 
 
 @tf.function
@@ -22,7 +28,7 @@ def loss_function(labels, embeddings, alpha):
 
     # get negative pairs mask
     neg_mask = _get_anchor_negative_triplet_mask(labels)
-    neg_mask = tf.cast(neg_mask, tf.float32)
+    neg_mask = tf.cast(neg_mask, tf.float16)
     num_pairs = tf.reduce_sum(neg_mask)
 
     # get regularization terms
@@ -30,10 +36,10 @@ def loss_function(labels, embeddings, alpha):
     m2 = tf.reduce_sum(dot_product_squared * neg_mask) / num_pairs
 
     # get embeddings dimension
-    dim_term = tf.cast(1 / tf.shape(embeddings)[1], tf.float32)
+    dim_term = tf.cast(1 / tf.shape(embeddings)[1], tf.float16)
 
     # compute global orthogonal regularization term
-    l_gor = m1 ** 2 + tf.maximum(tf.constant(0, dtype=tf.float32), m2 - dim_term)
+    l_gor = m1 ** 2 + tf.maximum(tf.constant(0, dtype=tf.float16), m2 - dim_term)
 
     # get triplet_loss
     l_triplet = batch_hard_triplet_loss(labels, embeddings, MARGIN)
@@ -129,7 +135,7 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
                                                                validation_split=0.2)
 
     # first training stage
-    batch_size = 64  # 768
+    batch_size = 128  # 768
     train_dataset = train_dataset.repeat()
     train_dataset_batched = train_dataset.batch(batch_size)
     val_dataset = val_dataset.repeat()
@@ -187,3 +193,5 @@ def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):
 
 if __name__ == '__main__':
     train(image_shape=[256, 256])
+    print('Compute dtype: %s' % policy.compute_dtype)
+    print('Variable dtype: %s' % policy.variable_dtype)

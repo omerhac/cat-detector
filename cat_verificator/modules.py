@@ -4,9 +4,15 @@ from triplet_loss import _get_anchor_negative_triplet_mask, _get_anchor_positive
 import numpy as np
 import os
 import etl
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
 
 # define dir path
 dir_path = os.path.dirname(os.path.abspath(__file__))
+
+# use mixed precision
+os.environ['TF_ENABLE_AUTO_MIXED_PRECISION'] = '1'
+policy = mixed_precision.Policy('mixed_float16')
+mixed_precision.set_policy(policy)
 
 
 class CatEmbedder(tf.keras.Model, ABC):
@@ -87,12 +93,12 @@ def threshold_metrics(threshold, batch_embeddings, batch_labels):
     # check criteria
     true_positives = tf.logical_and(positive_mask, distance_matrix <= threshold)
     true_negatives = tf.logical_and(negative_mask, distance_matrix > threshold)
-    tp_sum = tf.reduce_sum(tf.cast(true_positives, tf.float32))
-    tn_sum = tf.reduce_sum(tf.cast(true_negatives, tf.float32))
+    tp_sum = tf.reduce_sum(tf.cast(true_positives, tf.float16))
+    tn_sum = tf.reduce_sum(tf.cast(true_negatives, tf.float16))
 
     # get ground truth
-    positives = tf.reduce_sum(tf.cast(positive_mask, tf.float32))
-    negatives = tf.reduce_sum(tf.cast(negative_mask, tf.float32))
+    positives = tf.reduce_sum(tf.cast(positive_mask, tf.float16))
+    negatives = tf.reduce_sum(tf.cast(negative_mask, tf.float16))
 
     # stats
     eps = 1e-12  # for division

@@ -59,8 +59,8 @@ class CatVerificator():
         # set attrs
         self._threshold = threshold
         self._data_dir = data_dir
-        self._own_embedding_ph = tf.compat.v1.placeholder(tf.float32, shape=[1, 64])
-        self._image_to_verify = tf.compat.v1.placeholder(tf.float32, shape=[None, None, 3])
+        self._own_embedding_ph = tf.compat.v1.placeholder(tf.float16, shape=[1, 64])
+        self._image_to_verify = tf.compat.v1.placeholder(tf.float16, shape=[None, None, 3])
         self._verification_graph = self.create_verification_graph()
         self._sess = K.get_session()
 
@@ -143,7 +143,7 @@ class CatVerificator():
 
         # get own image embedding
         cropped_own = plt.imread(cropped_images_path + '/own.jpg')
-        input_image = tf.compat.v1.placeholder(tf.float32, shape=[None, None, 3])
+        input_image = tf.compat.v1.placeholder(tf.float16, shape=[None, None, 3])
         cropped_input = self.resize_input(input_image)  # resize to cat embedder input shape
         embedd = self._cat_embedder(tf.expand_dims(cropped_input, axis=0))
         self._own_embedding = self._sess.run(embedd, feed_dict={input_image: cropped_own})
