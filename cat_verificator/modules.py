@@ -3,9 +3,16 @@ import tensorflow as tf
 from triplet_loss import _get_anchor_negative_triplet_mask, _get_anchor_positive_triplet_mask, _pairwise_distances
 import numpy as np
 import os
+import etl
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
 
 # define dir path
 dir_path = os.path.dirname(os.path.abspath(__file__))
+
+# use mixed precision
+os.environ['TF_ENABLE_AUTO_MIXED_PRECISION'] = '1'
+policy = mixed_precision.Policy('mixed_float16')
+mixed_precision.set_policy(policy)
 
 
 class CatEmbedder(tf.keras.Model, ABC):
@@ -17,36 +24,34 @@ class CatEmbedder(tf.keras.Model, ABC):
         self._input_shape = input_shape
 
         # initialize efficienetnet with imagenet weights
-        self._efnet = tf.keras.applications.EfficientNetB2(include_top=False, pooling='avg', input_shape=input_shape,
-                                                           weights=dir_path + '/weights/efficientnetb2_notop.h5')
-        self._efnet.trainable = False
+        ef_net = tf.keras.applications.EfficientNetB2(include_top=False, pooling='avg', input_shape=input_shape,
+                                                      weights=dir_path + '/weights/efficientnetb2_notop.h5')
+        ef_net.trainable = False
 
-        self._dense_rep = tf.keras.layers.Dense(64, activation='linear', name='dense_rep')
+        self._model = tf.keras.models.Sequential([
+            ef_net,
+            tf.keras.layers.Dense(64, activation='linear', name='dense_rep'),
+            tf.keras.layers.Lambda(lambda x: tf.keras.backend.l2_normalize(x, axis=1), name='l2_norm')
+        ])
 
-    def __call__(self, x):
-        efnet_out = self._efnet(x)
-        dense_rep = self._dense_rep(efnet_out)
-
-        # l2 normalize
-        dense_rep = tf.keras.backend.l2_normalize(dense_rep, axis=1)
-
-        return dense_rep
+    def call(self, x):
+        return self._model(x)
 
     def unfreeze_block(self, block_num):
         """Unfreeze layers from block_num parameters"""
-        for layer in self._efnet.layers:
+        for layer in self._model.layers[0].layers:
             if layer.name[5] == str(block_num):  # check layers block
                 layer.trainable = True  # make layer trainable
 
     def unfreeze_top(self):
         """Unfreeze top layers after blocks parameters"""
-        for layer in self._efnet.layers:
+        for layer in self._model.layers[0].layers:
             if layer.name in ['top_conv', 'top_bn', 'top_activation', 'avg_pool']:  # check layer is in top layers
                 layer.trainable = True  # make layer trainable
 
     def unfreeze_all(self):
         """Unfreeze all model weights"""
-        self._efnet.trainable = True
+        self._model.layers[0].trainable = True
 
     def get_input_shape(self):
         return self._input_shape
@@ -65,6 +70,14 @@ class CatEmbedder(tf.keras.Model, ABC):
             ckpt.restore(ckpt_path)
             print(f'Restored weights from {ckpt_path}')
 
+    def load_model(self, model_path):
+        """Load model and weights from model_path"""
+        self._model = tf.keras.models.load_model(model_path)
+
+    def save_model(self, save_path):
+        """Save model to h5 file"""
+        self._model.save(save_path, save_format='h5', include_optimizer=False)
+
 
 def threshold_metrics(threshold, batch_embeddings, batch_labels):
     """Return threshold TPR and FPR on separating embeddings on either being positive or negative.
@@ -80,12 +93,12 @@ def threshold_metrics(threshold, batch_embeddings, batch_labels):
     # check criteria
     true_positives = tf.logical_and(positive_mask, distance_matrix <= threshold)
     true_negatives = tf.logical_and(negative_mask, distance_matrix > threshold)
-    tp_sum = tf.reduce_sum(tf.cast(true_positives, tf.float32))
-    tn_sum = tf.reduce_sum(tf.cast(true_negatives, tf.float32))
+    tp_sum = tf.reduce_sum(tf.cast(true_positives, tf.float16))
+    tn_sum = tf.reduce_sum(tf.cast(true_negatives, tf.float16))
 
     # get ground truth
-    positives = tf.reduce_sum(tf.cast(positive_mask, tf.float32))
-    negatives = tf.reduce_sum(tf.cast(negative_mask, tf.float32))
+    positives = tf.reduce_sum(tf.cast(positive_mask, tf.float16))
+    negatives = tf.reduce_sum(tf.cast(negative_mask, tf.float16))
 
     # stats
     eps = 1e-12  # for division
@@ -132,7 +145,36 @@ def auc_score(batch_embeddings, batch_labels, return_metrics=False):
         return area
 
 
+def examine_thresholds(input_shape, cat_embedder=None, type='raw', examples_number=32):
+    """Print TPR and FPR for threshold range"""
+    if not cat_embedder:
+        cat_embedder = CatEmbedder(input_shape=input_shape)
+        cat_embedder.load_checkpoint(tf.train.latest_checkpoint('weights/checkpoints'))
+
+    # get dataset
+    base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
+    train_dataset, val_dataset, _ = etl.image_generators(base_dir, (input_shape[0], input_shape[1]), type=type)
+    train_dataset = train_dataset.batch(examples_number)
+
+    for batch_labels, batch_images in train_dataset.take(1):
+        batch_embeddings = cat_embedder(batch_images)
+        _, metrics = auc_score(batch_embeddings, batch_labels, return_metrics=True)
+
+    for threshold in metrics:
+        print(f'Threshold {threshold}: TPR-{metrics[threshold][0]} FPR-{metrics[threshold][1]}')
+
+
 if __name__ == '__main__':
     a = CatEmbedder(input_shape=[64, 64, 3])
+    for layer in a._model.layers[0].layers:
+        print(layer.name, layer.trainable)
+    a.unfreeze_top()
+    a.unfreeze_block(7)
+    for layer in a._model.layers[0].layers:
+        print(layer.name, layer.trainable)
+    a.unfreeze_block(6)
+    for layer in a._model.layers[0].layers:
+        print(layer.name, layer.trainable)
+
 
 
