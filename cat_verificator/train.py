@@ -131,7 +131,7 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
 
     # get dataset
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape, type='raw',
+    train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape, type='cropped',
                                                                validation_split=0.2)
 
     # first training stage
@@ -143,11 +143,13 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
 
     train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=10)
 
-    # TODO: move this to the end of training or after each training stage
-    model.save_model('weights/cat_embedder_final.h5')
+    # save weights
+    weights_path = 'weights/cat_embedder_stage1.h5'
+    model.save_model(weights_path)
+    print(f'Saved model weights at: {weights_path}')
 
     # second training stage
-    batch_size = 384  # 612
+    batch_size = 128  # 612
     train_dataset_batched = train_dataset.batch(batch_size)
     val_dataset_batched = val_dataset.batch(batch_size)
 
@@ -156,6 +158,11 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     model.unfreeze_block(7)
 
     train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=30)
+
+    # save weights
+    weights_path = 'weights/cat_embedder_stage2.h5'
+    model.save_model(weights_path)
+    print(f'Saved model weights at: {weights_path}')
 
     # third training stage
     batch_size = 384
@@ -167,6 +174,11 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
 
     train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=30)
 
+    # save weights
+    weights_path = 'weights/cat_embedder_stage3.h5'
+    model.save_model(weights_path)
+    print(f'Saved model weights at: {weights_path}')
+
     # fourth training stage
     batch_size = 48
     train_dataset_batched = train_dataset.batch(batch_size)
@@ -177,6 +189,10 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
 
     #train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=45)
 
+    # save weights
+    weights_path = 'weights/cat_embedder_final.h5'
+    model.save_model(weights_path)
+    print(f'Saved model weights at: {weights_path}')
 
 def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):
     """Load model and optimizer from load dir. Return checkpoints manager"""
@@ -193,5 +209,3 @@ def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):
 
 if __name__ == '__main__':
     train(image_shape=[256, 256])
-    print('Compute dtype: %s' % policy.compute_dtype)
-    print('Variable dtype: %s' % policy.variable_dtype)

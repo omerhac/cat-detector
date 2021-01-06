@@ -2,6 +2,13 @@ import os
 import subprocess
 import time
 import glob
+import sys
+
+# import dependencies
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/cat_verificator')
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+import etl
+import utilities
 
 
 def make_call_string(arglist):
@@ -95,5 +102,5 @@ def check_detection():
 if __name__ == '__main__':
     images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
     etl.remove_non_jpegs(glob.glob(images_dir + '/*/*/*.jpg'), delete_files=True)
-    l = check_detection()
-    detect_dataset_faces(dirs_to_detect=l, save_images=False)
+    detect_dataset_faces()
+    utilities.crop_dataset_bounding_boxes(images_dir)
