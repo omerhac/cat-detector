@@ -4,6 +4,7 @@ import etl
 import os
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 import glob
+import modules
 
 # constants
 MARGIN = 0.4
@@ -149,7 +150,7 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     val_dataset = val_dataset.repeat()
     val_dataset_batched = val_dataset.batch(batch_size)
 
-    train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=10)
+    #train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=10)
 
     # save weights
     weights_path = 'weights/cat_embedder_stage1.h5'
@@ -218,3 +219,6 @@ def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):
 
 if __name__ == '__main__':
     train(image_shape=[256, 256])
+    a = CatEmbedder(input_shape=[256, 256, 3])
+    a.load_model('weights/cat_embedder_stage1.h5')
+    modules.examine_thresholds([256, 256, 3], cat_embedder=a, type='cropped')
