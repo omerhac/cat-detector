@@ -115,6 +115,7 @@ def train_stage(model, train_dataset, val_dataset, optimizer, dir_obj, batch_siz
             print("Saved model after {} epochs to {}".format(epoch, save_path))
 
         # shuffle, its ugly I know.. but it has to only shuffle directory order
+        print('Shuffling training directories order...')
         train_dataset, _, _ = etl.create_datasets_from_directories_list(dir_obj['train_dirs'], [],
                                                                         image_size=[256, 256], type='cropped',
                                                                         shuffle=True)
