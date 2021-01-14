@@ -114,6 +114,11 @@ def train_stage(model, train_dataset, val_dataset, optimizer, dir_obj, batch_siz
             save_path = ckpt_manager.save()
             print("Saved model after {} epochs to {}".format(epoch, save_path))
 
+        # shuffle, its ugly I know.. but it has to only shuffle directory order
+        train_dataset, _, _ = etl.create_datasets_from_directories_list(dir_obj['train_dirs'], [],
+                                                                        image_size=[256, 256], type='cropped',
+                                                                        shuffle=True)
+
 
 def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     """Train cat embedder
@@ -165,7 +170,7 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     print(f'Saved model weights at: {weights_path}')
 
     # third training stage
-    batch_size = 384
+    batch_size = 128
     train_dataset_batched = train_dataset.batch(batch_size)
     val_dataset_batched = val_dataset.batch(batch_size)
 
@@ -193,6 +198,7 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     weights_path = 'weights/cat_embedder_final.h5'
     model.save_model(weights_path)
     print(f'Saved model weights at: {weights_path}')
+
 
 def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):
     """Load model and optimizer from load dir. Return checkpoints manager"""
