@@ -114,11 +114,13 @@ def train_stage(model, train_dataset, val_dataset, optimizer, dir_obj, batch_siz
             save_path = ckpt_manager.save()
             print("Saved model after {} epochs to {}".format(epoch, save_path))
 
-        # shuffle, its ugly I know.. but it has to only shuffle directory order
+        # shuffle, its ugly I know.. but it has to only shuffle directory order  # TODO: solve this more elegantly
         print('Shuffling training directories order...')
-        train_dataset, _, _ = etl.create_datasets_from_directories_list(dir_obj['train_dirs'], [],
+        train_dataset, _, _ = etl.create_datasets_from_directories_list(dir_obj['train_dirs'], dir_obj['val_dirs'],
                                                                         image_size=[256, 256], type='cropped',
                                                                         shuffle=True)
+        train_dataset = train_dataset.repeat()
+        train_dataset = train_dataset.batch(128)
 
 
 def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
