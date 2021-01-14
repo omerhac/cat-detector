@@ -64,7 +64,7 @@ def resize_image(image, height=256, width=256):
 def image_generators(images_dir, image_size=(256, 256), type='raw', validation_split=0.25, sort_by=None):
     """Return dataset train and validation image generators. Each image will be resized to image_size.
         Args:
-            image_size: target size for images. aspect ration will be reserved
+            image_size: target size for images. aspect ratio will be reserved
             type: which type of images to extract. Available types are 'raw' or 'face', defaults to 'raw'
             sort_by: function by which to sort the cats
             images_dir: images directory
@@ -82,6 +82,29 @@ def image_generators(images_dir, image_size=(256, 256), type='raw', validation_s
     val_dirs = list(np.random.choice(cat_dirs, size=int(len(cat_dirs) * validation_split)))
     train_dirs = list(set(cat_dirs) - set(val_dirs))
 
+    # get datasets
+    train_dataset, validation_dataset, dir_obj = create_datasets_from_directories_list(train_dirs, val_dirs,
+                                                                                       image_size=image_size,
+                                                                                       type=type, sort_by=sort_by)
+
+    return train_dataset, validation_dataset, dir_obj
+
+
+def create_datasets_from_directories_list(train_dirs, val_dirs, image_size=(256, 256), type='raw', sort_by=None):
+    """Create the image dataset from the provided directories list
+    Args:
+        train_dirs: list of directories of training images
+        val_dirs: list of directories of validation images
+        image_size: target size for images. aspect ratio will be reserved
+        sort_by: sorting function by which to sort the directories
+        type: which type of images to extract. Available types are 'raw' or 'cropped', defaults to 'raw'
+
+    Returns:
+        train_dataset, val_dataset: tf datasets of images
+        dir_object: dict with {train_dirs: list of train dirs, val_dirs: list of validation dirs
+                                    , train_size: number of train images, val_size: number of validation images}
+    """
+
     # get cat images paths train and validation dataset
     train_image_paths = get_cat_image_paths(type=type, cat_paths=train_dirs, sort_by=sort_by)
     val_image_paths = get_cat_image_paths(type=type, cat_paths=val_dirs, sort_by=sort_by)
@@ -90,7 +113,7 @@ def image_generators(images_dir, image_size=(256, 256), type='raw', validation_s
 
     train_image_paths_dataset = tf.data.Dataset.from_tensor_slices(train_image_paths)
     val_image_paths_dataset = tf.data.Dataset.from_tensor_slices(val_image_paths)
-
+    
     # read and resize image to image_size
     train_dataset = train_image_paths_dataset.map(read_image)
     validation_dataset = val_image_paths_dataset.map(read_image)
@@ -122,3 +145,6 @@ def remove_non_jpegs(filepath_list, delete_files=False):
 
 if __name__ == '__main__':
     images_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
+    t, v, dir_obj = image_generators(images_dir, type='raw')
+    print(dir_obj['train_dirs'])
+    print(dir_obj['val_dirs'])
