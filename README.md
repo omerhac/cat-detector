@@ -1,9 +1,9 @@
 # cat-detector
-This is a cat detector and verifier based on this paper.
-It uses YOLO v3 object detector fine tuned on cat images for cat face detection.
-Cat face verfication is done by using FaceNet triplet loss as described here with orthogonal reglurization as described here.
-The triplet loss term just pushes embeddings of different identities further then embeddings of the same identity.
-The orthogonal loss term essentialy makes embeddings of different identities closer to orthogonal.
+This is a cat detector and verifier based on [this](http://cs230.stanford.edu/projects_fall_2019/reports/26251543.pdf) paper.  
+It uses YOLO v3 object detector fine tuned on cat images for cat face detection.  
+Cat face verfication is done by using [FaceNet](https://arxiv.org/pdf/1503.03832.pdf) triplet loss here with orthogonal reglurization as described [here](https://arxiv.org/pdf/1708.06320.pdf).  
+The triplet loss term just pushes embeddings of different identities further then embeddings of the same identity.  
+The orthogonal loss term essentialy makes embeddings of different identities closer to orthogonal.  
 
 ## Dataset
 This model is trained on a novel dataset prodeced from PetFinder as described in the paper above.
