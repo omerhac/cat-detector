@@ -40,7 +40,7 @@ Initialize YOLO:
       !python YOLO/2_Training/Train_YOLO.py
       
 Set own cat:
-- Put own cat image in application/
+- Put own cat image in application/own.jpg
 - Run:
 
       !python application/set_own_cat.py
@@ -52,9 +52,14 @@ Run application:
 
 ## Training
 Training is done at multiple stages as desicribed in the paper mentioned above. Bot sure if all stages are actually necessary.  
-You can train the cat verificator by running:
+You can train the cat verificator by:
+- Putting training images in /images
+- Detecting and cropping cat faces by running:
 
-    !python cat_verificator/train.py
+      !python YOLO/detect_faces.py
+- Train model by running:
+
+      !python cat_verificator/train.py
 
 The metric used is AUC, because there is an inate bias towards different-cat in the dataset. Only 5 pics of same cat per cat...   
 Triplet loss models should be trained with large batch sizes (larger then 500) because if the implementation details.  
