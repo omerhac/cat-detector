@@ -24,9 +24,21 @@ The dockerfile for building the Image for this project are called:
 They are bare tensorflow 2.3.0 with python 3 and dependencies from requirements.txt
 
 Initialize YOLO:
+- To use YOLO with pretrained weights (slightly lesser performance) use:
 
-    !python YOLO/initialize_yolo.py
- 
+      !python YOLO/initialize_yolo.py
+
+- To train your own YOLO:
+
+      !python YOLO/2_Training/Download_and_Convert_YOLO_weights.py
+      
+- Annotate images as described in [here](https://blog.insightdatascience.com/how-to-train-your-own-yolov3-detector-from-scratch-224d10e55de2)
+- Put images in YOLO/data/Source_Images/Training_Images
+- Run:
+
+      !python YOLO/1_Image_Annotation/Covert_to_YOLO_format.py
+      !python YOLO/2_Training/Train_YOLO.py
+      
 Set own cat:
 - Put own cat image in application/
 - Run:
