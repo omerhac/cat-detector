@@ -75,7 +75,7 @@ I trained the model on a 16GB GPU which was suffient for only 128 triplets per b
 The validation AUC score is 0.97, it sounds good but the FPR and TPR arent that impressive..
 At 1.25 THRESHOLD:
 - TPR = 0.9
-- FPR = 0.1
+- FPR = 0.1  
 I think this model can do better.
 
 
