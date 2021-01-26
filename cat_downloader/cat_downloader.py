@@ -163,7 +163,7 @@ def download_cats(zipcode, n_pages=5, start_page=1, start_client=0):
 
 if __name__ == '__main__':
     zipcodes = [
-        '11215',  # brooklyn
+        '99204',  # brooklyn
         '60616',  # chicago
         '33132',  # miami
         '90120',  # LA
@@ -185,12 +185,12 @@ if __name__ == '__main__':
         '10012',
         '20002',
         '10025',
-        '07662'
+        '07662',
         '55927',
         '71965',
         '10314',
         '22304'
     ]
-    for zone in range(20, 30):
+    for zone in range(0, 30):
         print(zone)
-        download_cats(zipcodes[zone], n_pages=1500, start_client=1)
+        download_cats(zipcodes[zone], n_pages=1500, start_client=0)

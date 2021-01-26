@@ -4,6 +4,7 @@ import etl
 import os
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
 import glob
+import modules
 
 # constants
 MARGIN = 0.4
@@ -114,6 +115,14 @@ def train_stage(model, train_dataset, val_dataset, optimizer, dir_obj, batch_siz
             save_path = ckpt_manager.save()
             print("Saved model after {} epochs to {}".format(epoch, save_path))
 
+        # shuffle, its ugly I know.. but it has to only shuffle directory order  # TODO: solve this more elegantly
+        print('Shuffling training directories order...')
+        train_dataset, _, _ = etl.create_datasets_from_directories_list(dir_obj['train_dirs'], dir_obj['val_dirs'],
+                                                                        image_size=[256, 256], type='cropped',
+                                                                        shuffle=True)
+        train_dataset = train_dataset.repeat()
+        train_dataset = train_dataset.batch(128)
+
 
 def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     """Train cat embedder
@@ -131,8 +140,8 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
 
     # get dataset
     base_dir = os.path.dirname(os.path.dirname(os.path.abspath(__file__))) + '/images'
-    train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape, type='raw',
-                                                               validation_split=0.2)
+    train_dataset, val_dataset, dir_obj = etl.image_generators(base_dir, image_size=image_shape, type='cropped',
+                                                               validation_split=0.1)
 
     # first training stage
     batch_size = 128  # 768
@@ -143,11 +152,13 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
 
     train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=10)
 
-    # TODO: move this to the end of training or after each training stage
-    model.save_model('weights/cat_embedder_final.h5')
+    # save weights
+    weights_path = 'weights/cat_embedder_stage1.h5'
+    model.save_model(weights_path)
+    print(f'Saved model weights at: {weights_path}')
 
     # second training stage
-    batch_size = 384  # 612
+    batch_size = 128  # 612
     train_dataset_batched = train_dataset.batch(batch_size)
     val_dataset_batched = val_dataset.batch(batch_size)
 
@@ -157,8 +168,13 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
 
     train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=30)
 
+    # save weights
+    weights_path = 'weights/cat_embedder_stage2.h5'
+    model.save_model(weights_path)
+    print(f'Saved model weights at: {weights_path}')
+
     # third training stage
-    batch_size = 384
+    batch_size = 128
     train_dataset_batched = train_dataset.batch(batch_size)
     val_dataset_batched = val_dataset.batch(batch_size)
 
@@ -166,6 +182,11 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     model.unfreeze_block(6)
 
     train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=30)
+
+    # save weights
+    weights_path = 'weights/cat_embedder_stage3.h5'
+    model.save_model(weights_path)
+    print(f'Saved model weights at: {weights_path}')
 
     # fourth training stage
     batch_size = 48
@@ -176,6 +197,11 @@ def train(image_shape=[256, 256], load_dir='weights/checkpoints'):
     model.unfreeze_all()
 
     #train_stage(model, train_dataset_batched, val_dataset_batched, optimizer, dir_obj, batch_size, manager, epochs=45)
+
+    # save weights
+    weights_path = 'weights/cat_embedder_final.h5'
+    model.save_model(weights_path)
+    print(f'Saved model weights at: {weights_path}')
 
 
 def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):
@@ -193,5 +219,6 @@ def load_checkpoint(model, optimizer=None, load_dir='checkpoints'):
 
 if __name__ == '__main__':
     train(image_shape=[256, 256])
-    print('Compute dtype: %s' % policy.compute_dtype)
-    print('Variable dtype: %s' % policy.variable_dtype)
+    a = CatEmbedder(input_shape=[256, 256, 3])
+    a.load_model('weights/cat_embedder_stage1.h5')
+    modules.examine_thresholds([256, 256, 3], cat_embedder=a, type='cropped')

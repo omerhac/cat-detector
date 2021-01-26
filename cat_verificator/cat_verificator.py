@@ -1,7 +1,7 @@
 from modules import *
 import tensorflow as tf
 from etl import resize_image
-
+from tensorflow.keras.mixed_precision import experimental as mixed_precision
 import os
 import matplotlib.pyplot as plt
 import utilities
@@ -17,6 +17,11 @@ tf.compat.v1.disable_eager_execution()
 
 # disable logging
 tf.get_logger().setLevel('ERROR')
+
+# use mixed precision
+os.environ['TF_ENABLE_AUTO_MIXED_PRECISION'] = '1'
+policy = mixed_precision.Policy('mixed_float16')
+mixed_precision.set_policy(policy)
 
 
 class CatVerificator():
@@ -94,7 +99,7 @@ class CatVerificator():
     def create_verification_graph(self):
         """Create the graph used for verification"""
         # load cat_embedder model
-        self._cat_embedder.load_model(dir_path + '/weights/cat_embedder_final.h5')
+        self._cat_embedder.load_model(dir_path + '/weights/cat_embedder_stage2.h5')
 
         resized_cat = self.resize_input(self._image_to_verify)
         resized_cat = tf.expand_dims(resized_cat, axis=0)  # add batch dimension

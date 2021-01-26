@@ -61,14 +61,16 @@ def resize_image(image, height=256, width=256):
     return tf.cast(tf.image.resize_with_pad(image, height, width), tf.uint8)
 
 
-def image_generators(images_dir, image_size=(256, 256), type='raw', validation_split=0.25, sort_by=None):
+def image_generators(images_dir, image_size=(256, 256), type='raw', validation_split=0.25, sort_by=None,
+                     shuffle=False):
     """Return dataset train and validation image generators. Each image will be resized to image_size.
         Args:
-            image_size: target size for images. aspect ration will be reserved
+            image_size: target size for images. aspect ratio will be reserved
             type: which type of images to extract. Available types are 'raw' or 'face', defaults to 'raw'
             sort_by: function by which to sort the cats
             images_dir: images directory
             validation_split: which portion of the dataeset to save for validation
+            shuffle: flag whether to shuffle the order of the training directories
 
         Returns:
             train_dataset: TF dataset with train images resized to image_size
@@ -81,6 +83,36 @@ def image_generators(images_dir, image_size=(256, 256), type='raw', validation_s
     cat_dirs = get_cat_dirs(images_dir, sort_by=sort_by)
     val_dirs = list(np.random.choice(cat_dirs, size=int(len(cat_dirs) * validation_split)))
     train_dirs = list(set(cat_dirs) - set(val_dirs))
+
+    # get datasets
+    train_dataset, validation_dataset, dir_obj = create_datasets_from_directories_list(train_dirs, val_dirs,
+                                                                                       image_size=image_size,
+                                                                                       type=type,
+                                                                                       sort_by=sort_by, shuffle=shuffle)
+
+    return train_dataset, validation_dataset, dir_obj
+
+
+def create_datasets_from_directories_list(train_dirs, val_dirs, image_size=(256, 256), type='raw', sort_by=None,
+                                          shuffle=False):
+    """Create the image dataset from the provided directories list
+    Args:
+        train_dirs: list of directories of training images
+        val_dirs: list of directories of validation images
+        image_size: target size for images. aspect ratio will be reserved
+        sort_by: sorting function by which to sort the directories,
+        type: which type of images to extract. Available types are 'raw' or 'cropped', defaults to 'raw'
+        shuffle: flag whether to shuffle the order of the training directories
+
+    Returns:
+        train_dataset, val_dataset: tf datasets of images
+        dir_object: dict with {train_dirs: list of train dirs, val_dirs: list of validation dirs
+                                    , train_size: number of train images, val_size: number of validation images}
+    """
+
+    # shuffle train dirs if necessary
+    if shuffle:
+        train_dirs = list(np.random.permutation(train_dirs))
 
     # get cat images paths train and validation dataset
     train_image_paths = get_cat_image_paths(type=type, cat_paths=train_dirs, sort_by=sort_by)
@@ -109,11 +141,13 @@ def image_generators(images_dir, image_size=(256, 256), type='raw', validation_s
     return train_dataset, validation_dataset, dir_obj
 
 
-def remove_non_jpegs(filepath_list):
+def remove_non_jpegs(filepath_list, delete_files=False):
     """Remove non jpeg files from a list of files"""
     for file in filepath_list:
         if imghdr.what(file) != 'jpeg':
             filepath_list.remove(file)
+            if delete_files:
+                os.remove(file)
 
     return filepath_list
 

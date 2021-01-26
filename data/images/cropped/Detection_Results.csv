@@ -1,2 +1,0 @@
-image,image_path,xmin,ymin,xmax,ymax,label,confidence,x_size,y_size
-own.jpg,data/images/raw/own.jpg,124,36,284,174,0,0.7406018376350403,300,400

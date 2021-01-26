@@ -5,6 +5,7 @@ import numpy as np
 import os
 import etl
 from tensorflow.keras.mixed_precision import experimental as mixed_precision
+from tensorflow.keras.backend import l2_normalize
 
 # define dir path
 dir_path = os.path.dirname(os.path.abspath(__file__))
@@ -31,7 +32,7 @@ class CatEmbedder(tf.keras.Model, ABC):
         self._model = tf.keras.models.Sequential([
             ef_net,
             tf.keras.layers.Dense(64, activation='linear', name='dense_rep'),
-            tf.keras.layers.Lambda(lambda x: tf.keras.backend.l2_normalize(x, axis=1), name='l2_norm')
+            tf.keras.layers.Lambda(lambda x: l2_normalize(x, axis=1), name='l2_norm')
         ])
 
     def call(self, x):
@@ -165,16 +166,11 @@ def examine_thresholds(input_shape, cat_embedder=None, type='raw', examples_numb
 
 
 if __name__ == '__main__':
-    a = CatEmbedder(input_shape=[64, 64, 3])
-    for layer in a._model.layers[0].layers:
-        print(layer.name, layer.trainable)
-    a.unfreeze_top()
-    a.unfreeze_block(7)
-    for layer in a._model.layers[0].layers:
-        print(layer.name, layer.trainable)
-    a.unfreeze_block(6)
-    for layer in a._model.layers[0].layers:
-        print(layer.name, layer.trainable)
+    a = CatEmbedder(input_shape=[256, 256, 3])
+    a.save_model('a.h5')
+    a.load_model('weights/cat_embedder_stage1.h5')
+    examine_thresholds([256, 256, 3], cat_embedder=a, type='cropped')
+
 
 
 

@@ -1,2 +1,2 @@
 image,image_path,xmin,ymin,xmax,ymax,label,confidence,x_size,y_size
-own.jpg,/Users/nurithofesh/PycharmProjects/cat-detector/demo/data/images/raw/own.jpg,6,3,79,89,0,0.9985852241516113,80,103
+own.jpg,/opt/project/demo/data/images/raw/own.jpg,6,3,79,89,0,0.9985852241516113,80,103

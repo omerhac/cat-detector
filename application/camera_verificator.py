@@ -4,6 +4,7 @@ import os
 from PIL import Image
 import numpy as np
 import time
+import tensorflow as tf
 import matplotlib.pyplot as plt
 
 # get root path
@@ -29,20 +30,26 @@ def run():
     model_path = root_path + '/YOLO/Data/Model_Weights/trained_weights_final.h5'
     anchors_path = root_path + '/YOLO/2_Training/src/keras_yolo3/model_data/yolo_anchors.txt'
     classes_path = root_path + '/YOLO/Data/Model_Weights/data_classes.txt'
-    yolo = YOLO(
-        **{
-            "model_path": model_path,
-            "anchors_path": anchors_path,
-            "classes_path": classes_path,
-            "score": 0.25,
-            "gpu_num": 1,
-            "model_image_size": (256, 256),
-        }
-    )
+
+    # define full float32 policy because of YOLO
+    with tf.compat.v1.variable_scope('float32_scope') as scope:
+        policy = tf.keras.mixed_precision.experimental.Policy('float32')
+        tf.keras.mixed_precision.experimental.set_policy(policy)
+
+        yolo = YOLO(
+            **{
+                "model_path": model_path,
+                "anchors_path": anchors_path,
+                "classes_path": classes_path,
+                "score": 0.25,
+                "gpu_num": 1,
+                "model_image_size": (256, 256),
+            }
+        )
 
     # initialize verificator model
     start_time = time.time()
-    verificator = CatVerificator([64, 64, 3], threshold=1.4, data_dir=dir_path + '/data', load_data=True)
+    verificator = CatVerificator([256, 256, 3], threshold=1.4, data_dir=dir_path + '/data', load_data=True)
     print("Loaded Cat Verficator in {:.2f}sec.".format(time.time() - start_time))
 
     # open camera feed
