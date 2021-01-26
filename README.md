@@ -77,3 +77,6 @@ At 1.25 THRESHOLD:
 - TPR = 0.9
 - FPR = 0.1
 I think this model can do better.
+
+
+![2_catface](https://user-images.githubusercontent.com/61577657/105912287-e8c8bb80-6033-11eb-961f-ea824f3736f4.jpg)
