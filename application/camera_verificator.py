@@ -49,7 +49,7 @@ def run():
 
     # initialize verificator model
     start_time = time.time()
-    verificator = CatVerificator([256, 256, 3], threshold=1.25, data_dir=dir_path + '/data', load_data=True)
+    verificator = CatVerificator([256, 256, 3], threshold=1.4, data_dir=dir_path + '/data', load_data=True)
     print("Loaded Cat Verficator in {:.2f}sec.".format(time.time() - start_time))
 
     # open camera feed
