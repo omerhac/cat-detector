@@ -19,9 +19,13 @@ The code for the crowler is at cat_downloader.
 
 ## Installation and prequisites
 The dockerfile for building the Image for this project are called:
-- Dockerfile.cpu: for running on CPU
-- Dockerfile.gpu: for running on GPU
+- Dockerfile.cpu: for training on CPU (no applcication support)
+- Dockerfile.gpu: for running on GPU (no application support). 
 They are bare tensorflow 2.3.0 with python 3 and dependencies from requirements.txt
+  
+For running the application only:  
+- install app_requirement.txt on python 3.7 venv
+
 
 Initialize YOLO:
 - To use YOLO with pretrained weights (slightly lesser performance) use:
