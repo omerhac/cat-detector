@@ -5,5 +5,5 @@
 /cat_verificator/data
 /venv
 /application/data
-/credentials/crededntials
-/credentials/config
+/aws_credentials/crededntials
+/aws_credentials/config
