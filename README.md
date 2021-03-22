@@ -66,14 +66,17 @@ You can train the cat verificator by:
       !python cat_verificator/train.py
 
 The metric used is AUC, because there is an inate bias towards different-cat in the dataset. Only 5 pics of same cat per cat...   
-Triplet loss models should be trained with large batch sizes (larger then 500) because if the implementation details.  
+Triplet loss models should be trained with large batch sizes (larger then 500) because if the implementation details (when using online examples mining).  
 Batch hard strategy is used, which means that the model is trained only on the hardest postive and hardest negatives.  
-It thus trained on only a small portion of the valid triplets and if small batch size is used they could also be repetative and highly correlated.  
+It is thus trained on only a small portion of the valid triplets and if small batch size is used the pool of examples to choose from each batch is small and examples could be not hard enough, repetative or highly correlated.  
 I trained the model on a 16GB GPU which was suffient for only 128 triplets per batch. This is not enough and I suspect that using higher batch size would yeild better results. 
 
 ## Model performance
 The validation AUC score is 0.97, it sounds good but the FPR and TPR arent that impressive..
 At 1.25 THRESHOLD:
 - TPR = 0.9
-- FPR = 0.1
+- FPR = 0.1  
 I think this model can do better.
+
+
+![2_catface](https://user-images.githubusercontent.com/61577657/105912287-e8c8bb80-6033-11eb-961f-ea824f3736f4.jpg)
