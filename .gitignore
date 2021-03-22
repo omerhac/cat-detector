@@ -5,4 +5,5 @@
 /cat_verificator/data
 /venv
 /application/data
-
+/credentials/crededntials
+/credentials/config
