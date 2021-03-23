@@ -2,7 +2,8 @@ FROM tensorflow/tensorflow:2.3.0
 
 RUN apt-get -y install python3
 RUN apt-get -y install python3-pip
-RUN apt-get -y install jq
+RUN apt -y install curl
+RUN apt -y install zip
 
 COPY . /opt/ml/code
 
@@ -14,6 +15,16 @@ RUN pip3 install --upgrade pip
 RUN pip3 install -r requirements.txt
 
 ENV PATH="/opt/ml/code:${PATH}"
+
+# install aws cli
+RUN curl "https://awscli.amazonaws.com/awscli-exe-linux-x86_64.zip" -o "awscliv2.zip"
+RUN unzip -o awscliv2.zip
+RUN ./aws/install
+
+# authenticate using credentials files
+RUN mkdir ~/.aws
+RUN cp aws_credentials/credentials ~/.aws
+RUN cp aws_credentials/config ~/.aws
 
 
 
