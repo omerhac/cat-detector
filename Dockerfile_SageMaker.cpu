@@ -1,5 +1,6 @@
 FROM tensorflow/tensorflow:2.3.0
 
+# basic dependencies
 RUN apt-get -y install python3
 RUN apt-get -y install python3-pip
 RUN apt -y install curl
@@ -25,6 +26,9 @@ RUN ./aws/install
 RUN mkdir ~/.aws
 RUN cp aws_credentials/credentials ~/.aws
 RUN cp aws_credentials/config ~/.aws
+
+# install sagemaker python sdk
+RUN pip install sagemaker
 
 
 
