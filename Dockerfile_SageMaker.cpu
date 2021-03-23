@@ -30,5 +30,11 @@ RUN cp aws_credentials/config ~/.aws
 # install sagemaker python sdk
 RUN pip install sagemaker
 
+# install horovod and perquisites
+RUN apt-get -y install openmpi-bin
+RUN pip install cmake
+RUN apt-cache policy openmpi-bin
+RUN pip install horovod
+
 
 
