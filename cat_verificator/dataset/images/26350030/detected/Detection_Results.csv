@@ -1,0 +1,5 @@
+image,image_path,xmin,ymin,xmax,ymax,label,confidence,x_size,y_size
+1.jpg,/app/images/26350030/raw/1.jpg,76,0,177,65,0,0.5334591865539551,300,225
+0.jpg,/app/images/26350030/raw/0.jpg,22,21,211,191,0,0.9043669104576111,300,400
+3.jpg,/app/images/26350030/raw/3.jpg,0,0,164,137,0,0.7245447039604187,300,225
+4.jpg,/app/images/26350030/raw/4.jpg,75,28,243,196,0,0.8623746633529663,300,400
