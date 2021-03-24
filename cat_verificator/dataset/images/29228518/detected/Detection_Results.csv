@@ -1,6 +1,0 @@
-image,image_path,xmin,ymin,xmax,ymax,label,confidence,x_size,y_size
-1.jpg,/app/images/29228518/raw/1.jpg,50,14,273,238,0,0.9873695969581604,300,433
-0.jpg,/app/images/29228518/raw/0.jpg,72,4,182,112,0,0.9131462574005127,300,225
-2.jpg,/app/images/29228518/raw/2.jpg,5,1,275,236,0,0.9998316764831543,300,327
-3.jpg,/app/images/29228518/raw/3.jpg,2,0,221,245,0,0.996146559715271,300,400
-4.jpg,/app/images/29228518/raw/4.jpg,98,0,235,95,0,0.9922223687171936,300,225

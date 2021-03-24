@@ -1,5 +1,0 @@
-image,image_path,xmin,ymin,xmax,ymax,label,confidence,x_size,y_size
-1.jpg,/app/images/30877622/raw/1.jpg,151,48,231,118,0,0.8888798952102661,300,225
-0.jpg,/app/images/30877622/raw/0.jpg,83,112,184,215,0,0.9756941795349121,300,400
-2.jpg,/app/images/30877622/raw/2.jpg,50,15,210,198,0,0.9935635328292847,300,300
-3.jpg,/app/images/30877622/raw/3.jpg,55,127,173,241,0,0.9245888590812683,240,320
